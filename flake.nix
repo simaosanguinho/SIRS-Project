@@ -15,7 +15,7 @@
         devShell = pkgs.mkShell {
           packages = [
             (pkgs.python3.withPackages
-              (python-pkgs: [ python-pkgs.requests python-pkgs.pwntools python-pkgs.zodbpickle ]))
+              (python-pkgs: [ python-pkgs.django python-pkgs.psycopg python-pkgs.textual ]))
           ];
         };
 
