@@ -46,10 +46,12 @@
 
           devShells.default = pkgs.mkShell {
             packages = [
-              (pkgs.python3.withPackages (python-pkgs: [
-                python-pkgs.django
-                python-pkgs.psycopg
-                python-pkgs.textual
+              (pkgs.python3.withPackages (python-pkgs: with python-pkgs; [
+                django
+                psycopg
+                textual
+                textual-dev # For developing Textual apps
+                click
               ]))
             ];
           };

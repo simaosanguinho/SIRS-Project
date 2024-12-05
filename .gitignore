@@ -1,3 +1,7 @@
+# Direnv
+.direnv
+.envrc
+
 # Django #
 *.log
 *.pot
