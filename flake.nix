@@ -47,11 +47,12 @@
           devShells.default = pkgs.mkShell {
             packages = [
               (pkgs.python3.withPackages (python-pkgs: with python-pkgs; [
+                click
+                cryptography
                 django
                 psycopg
                 textual
                 textual-dev # For developing Textual apps
-                click
               ]))
             ];
           };
