@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "jnoortheen.nix-ide",
+        "ms-python.python",
+        "charliermarsh.ruff"
+    ]
+}
