@@ -11,7 +11,7 @@ The chosen scenario was MotorIST.
 
 #### How to test the crypto lib:
 
-There is a script that was develop to aid in such task. It can be found under at [/test](./test).
+There is a script that was develop to aid in such task. It can be found at [test](./test) directory.
 
 To run the script, run the command:
     
@@ -19,5 +19,5 @@ To run the script, run the command:
 ./cryptolib_test.sh  <COMMAND>
 ```
 
-Available Commads are:
-- ```run_protect``` - to run the protect functionality of crytpolab, that takes a json file and ecrypts a set of given fields
+The available commads are:
+- ```run_protect``` - to run the protect functionality of cryptolab, that takes a json file and ecrypts a set of given fields;
