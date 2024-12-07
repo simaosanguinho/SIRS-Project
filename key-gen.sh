@@ -33,4 +33,12 @@ do
     echo "Generated keys for user$i: $privkey_file, $pubkey_file"
 done
 
+# Generate a symmetric key for testing
+# Key must be 16, 24, or 32 bytes long for AES encryption.
+openssl rand -base64 24 > keys/symmetric.key
+
+
+
+
+
 echo "Key generation complete for $num_users users."

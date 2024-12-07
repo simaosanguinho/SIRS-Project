@@ -1,0 +1,8 @@
+{
+    "carId": 1,
+    "user": "user1",
+    "configuration": {
+        "ac": true
+    },
+    "nonce": 123456
+}

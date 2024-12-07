@@ -144,3 +144,5 @@ GitHub.sublime-settings
 
 # Project Specific #
 keys/*
+/test/keys/*
+/test/output.json
