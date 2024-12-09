@@ -38,7 +38,4 @@ done
 openssl rand -base64 24 > keys/symmetric.key
 
 
-
-
-
 echo "Key generation complete for $num_users users."

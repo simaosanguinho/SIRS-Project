@@ -53,7 +53,9 @@
                 psycopg
                 textual
                 textual-dev # For developing Textual apps
+                rich # For development/pretty print
               ]))
+              pkgs.openssl
             ];
           };
 

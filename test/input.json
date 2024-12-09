@@ -2,7 +2,9 @@
     "carId": 1,
     "user": "user1",
     "configuration": {
-        "ac": true
+        "ac": true,
+        "driver_door": "closed"
     },
+    "firmware": "2",
     "nonce": 123456
 }
