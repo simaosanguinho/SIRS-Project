@@ -11,6 +11,7 @@ import os
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from rich import pretty
+from rich import print
 
 
 @click.group()
