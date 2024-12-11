@@ -3,8 +3,21 @@
     "user": "user1",
     "configuration": {
         "ac": true,
-        "driver_door": "closed"
+        "driver_door": "closed",
+        "tire_pressure": {
+            "1": "5psi",
+            "2": "3psi",
+            "3": "7psi",
+            "4": "0psi"
+        } 
     },
-    "firmware": "2",
-    "nonce": 123456
+   
+   
+
+
+    
+   
+   
+    "firmware": "2"
+
 }

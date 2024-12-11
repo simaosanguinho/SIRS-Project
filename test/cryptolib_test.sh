@@ -10,28 +10,27 @@ CHACHA_KEY="./keys/chacha.key"
 OUTPUT_PROTECTED="output_protected.json"
 OUTPUT_UNPROTECTED="output_unprotected.json"
 
-
 # run the key generation script
 #bash ../key-gen.sh 1
 
 if [ ! -f $INPUT ]; then
-    echo "Creating input file: $INPUT"
-    echo "{}" > $INPUT
+  echo "Creating input file: $INPUT"
+  echo "{}" >$INPUT
 fi
 
 # Execute the command
 if [ "$1" == "run_protect" ]; then
-    python3 $PROGRAM protect $INPUT $CHACHA_KEY $OUTPUT_PROTECTED -t configuration -t firmware -a user
+  python3 $PROGRAM protect $INPUT $CHACHA_KEY $OUTPUT_PROTECTED -t configuration -t firmware -a user
 fi
 
 if [ "$1" == "run_unprotect" ]; then
-    python3 $PROGRAM unprotect $OUTPUT_PROTECTED $CHACHA_KEY $OUTPUT_UNPROTECTED -t configuration -t firmware -a user
+  python3 $PROGRAM unprotect $OUTPUT_PROTECTED $CHACHA_KEY $OUTPUT_UNPROTECTED -t configuration -t firmware -a user
 fi
 
 if [ "$1" == "gen_key_aes" ]; then
-    python3 $PROGRAM generate-key $AES_KEY
+  python3 $PROGRAM generate-key $AES_KEY
 fi
 
 if [ "$1" == "gen_key_chacha" ]; then
-    python3 $PROGRAM generate-key $CHACHA_KEY
+  python3 $PROGRAM generate-key $CHACHA_KEY
 fi

@@ -36,13 +36,9 @@
         "x86_64-darwin"
       ];
       perSystem =
-        {
-          config,
-          self',
-          inputs',
-          pkgs,
-          system,
-          ...
+        { config
+        , pkgs
+        , ...
         }:
         rec {
           # Per-system attributes can be defined here. The self' and inputs'
@@ -51,8 +47,6 @@
 
           # Equivalent to  inputs'.nixpkgs.legacyPackages.hello;
           # packages.default = pkgs.hello;
-
-          formatter = pkgs.nixfmt-rfc-style;
 
           devShells.default = pkgs.mkShell {
             packages = [
@@ -67,10 +61,10 @@
               ]))
               pkgs.openssl
             ];
-              shellHook = ''
-                # export DEBUG=1
-                ${config.pre-commit.installationScript}
-              '';
+            shellHook = ''
+              # export DEBUG=1
+              ${config.pre-commit.installationScript}
+            '';
 
           };
 
@@ -78,7 +72,7 @@
             check.enable = true;
             settings.hooks = {
               actionlint.enable = true;
-             # treefmt.enable = true;
+              treefmt.enable = true;
               commitizen = {
                 enable = false;
                 description = "Check whether the current commit message follows commiting rules. Allow empty commit messages by default, because they typically indicate to Git that the commit should be aborted.";
@@ -94,7 +88,6 @@
               };
             };
           };
-          treefmt.projectRootFile = ./flake.nix;
           treefmt.programs = {
             nixpkgs-fmt.enable = true;
             shfmt.enable = true;
@@ -105,9 +98,9 @@
             ruff-format.enable = true;
           };
         };
-  
 
-      
+
+
       flake = {
         # The usual flake attributes can be defined here, including system-
         # agnostic ones like nixosModule and system-enumerating ones, although
