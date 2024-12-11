@@ -3,7 +3,7 @@ import json
 import sys
 from base64 import b64encode
 import base64
-import os
+import secrets
 
 # TODO: make this dynamic by taking AEAD algorithm dynamically
 # e.g       from cryptography.hazmat.primitives.ciphers import aead
@@ -55,8 +55,7 @@ def protect(
         raise ValueError("Key must be 16, 24, or 32 bytes long for AES encryption.")
 
     encryption_algo = EncryptionAlgo(dummy_key_bytes)
-    # TODO: use secrets module instead of urandom
-    nonce = os.urandom(12)  #
+    nonce = secrets.token_bytes(12)  #
 
     # Encrypt only the target fields
     for field in target_fields:
@@ -199,7 +198,7 @@ def generate_key(output_file):
 
 def encrypt_data(encrypted_dict, aad, key=None, nonce=None):
     if not nonce:
-        nonce = os.urandom(12)
+        nonce = secrets.token_bytes(12)
     chacha = ChaCha20Poly1305(key)
     return chacha.encrypt(nonce, encrypted_dict, aad)
 
