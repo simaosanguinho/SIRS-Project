@@ -53,11 +53,11 @@
               (pkgs.python3.withPackages (python-pkgs: with python-pkgs; [
                 click
                 cryptography
-                django
                 psycopg
                 textual
                 textual-dev # For developing Textual apps
                 rich # For development/pretty print
+                flask
               ]))
               pkgs.openssl
             ];
