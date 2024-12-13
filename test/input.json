@@ -5,7 +5,7 @@
         "ac": true,
         "driver_door": "closed",
         "tire_pressure": {
-            "1": "5psi",
+            "1": "1psi",
             "2": "3psi",
             "3": "7psi",
             "4": "0psi"

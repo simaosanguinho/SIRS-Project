@@ -13,10 +13,10 @@ class Car:
             self.config = json.load(file)
             print("Default Config", self.config)
 
-    def updateConfig(self, client_config):
-        self.config.update(client_config)
-        return "Config updated"
-
+    def setConfig(self, config_path):
+        with open(config_path, "r") as file:
+            self.config = json.load(file)
+        
     def is_user_owner(self, user):
         return user in self.config["user"]
 
@@ -31,11 +31,13 @@ def hello_world():
 
 @app.route("/maintenance-mode/<mode>")
 def maintenance_mode(mode):
-    if not car.is_user_owner("admin"):
-        return "User not authorized to change maintenance mode"
+    """ if not car.is_user_owner("admin"):
+        return "User not authorized to change maintenance mode" """
 
     if mode == "on":
         car.maintnaince_mode = True
+        # set car config to default
+        car.setConfig(default_config_path)
     elif mode == "off":
         car.maintnaince_mode = False
     else:
@@ -58,10 +60,13 @@ def update_config():
     config_str = json.dumps(car.config)
     return "Config updated" + config_str
 
+@app.route("/get-config")
+def get_config():
+    return json.dumps(car.config)
 
 # Use environment variable to set config path - DEFAULT_CONFIG_PATH
-config_path = os.getenv("DEFAULT_CONFIG_PATH")
-if not config_path:
+default_config_path = os.getenv("DEFAULT_CONFIG_PATH")
+if not default_config_path:
     raise ValueError("DEFAULT_CONFIG_PATH environment variable not set")
 
-car = Car(config_path)
+car = Car(default_config_path)
