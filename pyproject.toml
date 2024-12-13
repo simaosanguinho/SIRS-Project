@@ -10,7 +10,8 @@ dependencies = [
     "rich",
     "cryptography",
     "click",
-    'importlib-metadata; python_version<"3.10"'
+    'importlib-metadata; python_version<"3.10"',
+    'flask'
 ]
 
 [tool.setuptools.packages.find]

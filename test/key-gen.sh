@@ -36,4 +36,7 @@ done
 # Key must be 16, 24, or 32 bytes long for AES encryption.
 openssl rand -base64 24 >keys/symmetric.key
 
+# Generate an chahcha20 key for testing
+openssl rand -base64 32 >keys/chacha.key
+
 echo "Key generation complete for $num_users users."

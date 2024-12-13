@@ -146,4 +146,7 @@ GitHub.sublime-settings
 keys/*
 /test/keys/*
 /test/output.json
+/test/output_protected.json
+basic.json
 .pre-commit-config.yaml
+

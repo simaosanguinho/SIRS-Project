@@ -1,16 +1,67 @@
-# References:
-# https://web.archive.org/web/20210928235937/https://www.ajg.id.au/2018/01/01/mutual-tls-with-python-flask-and-werkzeug/
-# from base64 import b64decode
+from flask import Flask, request
+import json
+import os
+
+import cryptolib.main as cryptolib
 
 
-# import cryptolib as lib
 class Car:
-    def __init__(self, car_folder_path: str):
-        self.car_keyfile = f"{car_folder_path}/car.key"
-        self.car_certfile = f"{car_folder_path}/car.crt"
+    def __init__(self, default_config):
+        self.maintnaince_mode = False
+        self.config = {}
+        with open(default_config, "r") as file:
+            self.config = json.load(file)
+            print("Default Config", self.config)
 
-        # Read and decode the key
+    def updateConfig(self, client_config):
+        self.config.update(client_config)
+        return "Config updated"
 
-    # with open(self.car_keyfile, "r") as key_file:
-    # key_base64 = key_file.read().strip()  # Remove newline
-    # dummy_key_bytes = b64decode(key_base64)
+    def is_user_owner(self, user):
+        return user in self.config["user"]
+
+
+app = Flask(__name__)
+
+
+@app.route("/")
+def hello_world():
+    return "<p>Hello, World!</p>"
+
+
+@app.route("/maintenance-mode/<mode>")
+def maintenance_mode(mode):
+    if not car.is_user_owner("admin"):
+        return "User not authorized to change maintenance mode"
+
+    if mode == "on":
+        car.maintnaince_mode = True
+    elif mode == "off":
+        car.maintnaince_mode = False
+    else:
+        return "Invalid mode"
+    return f"Maintenance mode is {mode}"
+
+
+@app.route("/update-config", methods=["POST"])
+def update_config():
+    data = request.get_json()
+    print("Data Received", data)
+    print("Type", type(data))
+
+    # TODO: Add validation for the data
+    # Change the hardcoded values
+
+    car.config = cryptolib.unprotect_lib(
+        data, "../../test/keys/chacha.key", ["configuration", "firmware"], ["user"]
+    )
+    config_str = json.dumps(car.config)
+    return "Config updated" + config_str
+
+
+# Use environment variable to set config path - DEFAULT_CONFIG_PATH
+config_path = os.getenv("DEFAULT_CONFIG_PATH")
+if not config_path:
+    raise ValueError("DEFAULT_CONFIG_PATH environment variable not set")
+
+car = Car(config_path)

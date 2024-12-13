@@ -113,21 +113,30 @@ def unprotect(
 
     print("Encrypted encrypted_dict:", encrypted_dict)
 
+    data = unprotect_lib(encrypted_dict, dummy_key, target_fields, authenticated_fields)
+
+    print(f"Decrypted data: {data}")
+    with open(output_file, "w+") as file:
+        json.dump(data, file, indent=4, ensure_ascii=False)
+
+
+def unprotect_lib(encrypted_dict, dummy_key, target_fields, authenticated_fields):
+    print("Encrypted encrypted_dict:", encrypted_dict)
+
     # Read and decode the key
     with open(dummy_key, "r") as key_file:
         key_base64 = key_file.read().strip()  # Remove newline
         dummy_key_bytes = base64.b64decode(key_base64)
 
     data = decrypt(encrypted_dict, dummy_key_bytes, target_fields, authenticated_fields)
-    print(f"Decrypted data: {data}")
-    with open(output_file, "w+") as file:
-        json.dump(data, file, indent=4, ensure_ascii=False)
+    return data
 
 
 def decrypt(encrypted_dict, key_bytes, target_fields, authenticated_fields):
     encryption_algo = EncryptionAlgo(key_bytes)
 
     final_dict = {}
+    final_dict = encrypted_dict.copy()
 
     # Decryption
     for field in target_fields:
@@ -147,7 +156,9 @@ def decrypt(encrypted_dict, key_bytes, target_fields, authenticated_fields):
             stored_nonce, stored_ciphertext, None
         )  # aead
         print(f"Decrypted value for {field}:", json.loads(decrypted_value))
-        # return json.loads(decrypted_ata)
+        final_dict[field] = json.loads(decrypted_value)
+
+    return final_dict
 
 
 @cli.command()
