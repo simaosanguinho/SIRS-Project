@@ -43,6 +43,31 @@ def protect(
     # Open and read the JSON file
     with open(input_file, "r") as file:
         encrypted_dict = json.load(file)
+
+    encrypted_dict = protect_lib(
+        encrypted_dict, dummy_key, target_fields, authenticated_fields
+    )
+
+    with open(output_file, "w") as file:
+        json.dump(encrypted_dict, file, indent=4, ensure_ascii=False)
+
+    # Decryption
+    """ for field in target_fields:
+        if (
+            field in encrypted_dict
+            and isinstance(encrypted_dict[field], dict)
+            and "ciphertext" in encrypted_dict[field]
+            and "nonce" in encrypted_dict[field]
+        ):
+            stored_nonce = base64.b64decode(encrypted_dict[field]["nonce"])
+            stored_ciphertext = base64.b64decode(encrypted_dict[field]["ciphertext"])
+            decrypted_value = encryption_algo.decrypt(
+                stored_nonce, stored_ciphertext, None
+            )  # TODO aead
+            print(f"Decrypted value for {field}:", json.loads(decrypted_value)) """
+
+
+def protect_lib(encrypted_dict, dummy_key, target_fields, authenticated_fields):
     print("Original encrypted_dict:", encrypted_dict)
 
     # Read and decode the key
@@ -74,24 +99,7 @@ def protect(
             }
 
     print("Encrypted encrypted_dict:", encrypted_dict)
-
-    with open(output_file, "w") as file:
-        json.dump(encrypted_dict, file, indent=4, ensure_ascii=False)
-
-    # Decryption
-    for field in target_fields:
-        if (
-            field in encrypted_dict
-            and isinstance(encrypted_dict[field], dict)
-            and "ciphertext" in encrypted_dict[field]
-            and "nonce" in encrypted_dict[field]
-        ):
-            stored_nonce = base64.b64decode(encrypted_dict[field]["nonce"])
-            stored_ciphertext = base64.b64decode(encrypted_dict[field]["ciphertext"])
-            decrypted_value = encryption_algo.decrypt(
-                stored_nonce, stored_ciphertext, None
-            )  # TODO aead
-            print(f"Decrypted value for {field}:", json.loads(decrypted_value))
+    return encrypted_dict
 
 
 @cli.command()

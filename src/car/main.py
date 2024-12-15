@@ -17,11 +17,9 @@ class Car:
         with open(config_path, "r") as file:
             self.config = json.load(file)
 
-        
-        
     def is_user_owner(self, user):
         return user in self.config["user"]
-    
+
     # add method to build the car document (carid, user, config, firmware)
 
 
@@ -30,13 +28,13 @@ app = Flask(__name__)
 
 @app.route("/")
 def root():
-    return "<h3>Welcome to the Car App!  </h3> Car Id: " + str(car.config["carId"])
+    return "<h3>Welcome to the Car App!  </h3> Car ID: " + str(car.config["carId"])
 
 
 @app.route("/maintenance-mode/<mode>")
 def maintenance_mode(mode):
-    """ if not car.is_user_owner("admin"):
-        return "User not authorized to change maintenance mode" """
+    """if not car.is_user_owner("admin"):
+    return "User not authorized to change maintenance mode" """
 
     if mode == "on":
         car.maintnaince_mode = True
@@ -64,6 +62,7 @@ def update_config():
     config_str = json.dumps(car.config)
     return "Config updated" + config_str
 
+
 @app.route("/get-config")
 def get_config():
     return json.dumps(car.config)
@@ -79,6 +78,7 @@ if not default_config_path:
 
 if __name__ == "__main__":
     import sys
+
     car = Car(default_config_path)
     # set different port for car based on id
     port = 5000 + int(sys.argv[1])
