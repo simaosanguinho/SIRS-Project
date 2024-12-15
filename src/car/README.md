@@ -6,8 +6,11 @@ Flask app that represents the car
 
 ```
 export DEFAULT_CONFIG_PATH=../../test/input.json
-flask --app main.py run
+python3 main.py <CAR_ID>
 ```
+
+Ports start at address 5000.
+
 
 ### Available Endpoints:
 

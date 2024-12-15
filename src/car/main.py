@@ -16,17 +16,21 @@ class Car:
     def setConfig(self, config_path):
         with open(config_path, "r") as file:
             self.config = json.load(file)
+
+        
         
     def is_user_owner(self, user):
         return user in self.config["user"]
+    
+    # add method to build the car document (carid, user, config, firmware)
 
 
 app = Flask(__name__)
 
 
 @app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
+def root():
+    return "<h3>Welcome to the Car App!  </h3> Car Id: " + str(car.config["carId"])
 
 
 @app.route("/maintenance-mode/<mode>")
@@ -64,9 +68,19 @@ def update_config():
 def get_config():
     return json.dumps(car.config)
 
+
+# CHECK BATTERY LEVEL
+
 # Use environment variable to set config path - DEFAULT_CONFIG_PATH
 default_config_path = os.getenv("DEFAULT_CONFIG_PATH")
 if not default_config_path:
     raise ValueError("DEFAULT_CONFIG_PATH environment variable not set")
 
-car = Car(default_config_path)
+
+if __name__ == "__main__":
+    import sys
+    car = Car(default_config_path)
+    # set different port for car based on id
+    port = 5000 + int(sys.argv[1])
+    app.run(port=port)
+    app.run()
