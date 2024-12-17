@@ -94,7 +94,7 @@ def check_battery():
 def charge_battery():
     car.battery_level = 100
     car.op_count = 0
-    return check_battery()
+    return "Battery has been charged to 100%"
 
 
 # DEBUG ENDPOINTS
