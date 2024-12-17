@@ -24,3 +24,10 @@ To run the script, run the command:
 The available commads are:
 
 - `run_protect` - to run the protect functionality of cryptolab, that takes a json file and ecrypts a set of given fields;
+
+# References
+
+- https://smallstep.com/blog/everything-pki/
+- https://security.stackexchange.com/questions/74345/provide-subjectaltname-to-openssl-directly-on-the-command-line
+- https://github.com/tecnico-sec/Java-Crypto-Details
+- https://kubernetes.io/docs/tasks/administer-cluster/certificates/

@@ -60,6 +60,8 @@
                 flask
               ]))
               pkgs.openssl
+              pkgs.step-ca
+              pkgs.step-cli
             ];
             shellHook = ''
               # export DEBUG=1
