@@ -73,7 +73,7 @@ def update_config():
     config_str = json.dumps(car.config)
 
     car.op_count += 1
-    if car.op_count > 10:
+    if car.op_count >= 10:
         car.op_count = 0
         car.battery_level -= 5
 
