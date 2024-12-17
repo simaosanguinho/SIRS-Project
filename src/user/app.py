@@ -1,6 +1,6 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, Button, Static, Label
-from textual.containers import Horizontal, Vertical
+from textual.widgets import Footer, Button, Static, Label
+from textual.containers import Horizontal, Vertical, Container
 from textual.screen import Screen
 from textual.theme import Theme
 from textual.widgets import Input
@@ -11,28 +11,39 @@ class HomeScreen(Screen):
     """Home screen that displays basic car management options."""
 
     def compose(self) -> ComposeResult:
-        yield Header()
         yield Static("Car Management System", id="title")
         yield Label(
             f"Car ID: {self.app.car_id} | Owner ID: {self.app.owner_id}", id="car-info"
         )
 
         # Maintenance Mode Controls
-        yield Static("Maintenance Mode:")
-        with Horizontal():
-            yield Button("Enable", id="maintenance-on")
-            yield Button("Disable", id="maintenance-off")
+        with Vertical(classes="vertical"):
+            with Horizontal(classes="horizontal"):
+                yield Container(
+                    Static("Maintenance Mode:", classes="section-label"),
+                    Button("Enable", id="maintenance-on"),
+                    Button("Disable", id="maintenance-off"),
+                    classes="controls",
+                )
+
+                yield Container(
+                    # Battery Controls
+                    Static("Battery Management:", classes="section-label"),
+                    Button("Check Battery", id="check-battery"),
+                    Button("Charge Battery", id="charge-battery"),
+                    classes="controls",
+                )
+
+            with Horizontal(classes="horizontal"):
+                yield Container(
+                    # Config View Navigation
+                    Static("Car Configuration:", classes="section-label"),
+                    Button("Get Car Configuration", id="get-config"),
+                    Button("Update Car Configuration", id="go-config"),
+                    classes="car-config-btn",
+                )
 
         # Navigation to Config View
-        yield Static("Navigate:")
-        yield Button("Go to Config Page", id="go-config")
-
-        # Battery Controls
-        yield Static("Battery Management:")
-        with Horizontal():
-            yield Button("Check Battery", id="check-battery")
-            yield Button("Charge Battery", id="charge-battery")
-
         # Output Display
         yield Static("Output:", id="output")
         yield Footer()
@@ -59,9 +70,13 @@ class HomeScreen(Screen):
                 response = requests.get(f"{app.flask_url}/charge-battery")
                 self.display_output(response.text)
 
+            elif button_id == "get-config":
+                response = requests.get(f"{app.flask_url}/get-config")
+                self.display_output(response.text)
+
             elif button_id == "go-config":
-                # Navigate to the ConfigScreen
-                self.app.push_screen(ConfigScreen())
+                # Navigate to the UpdateConfigScreen
+                self.app.push_screen(UpdateConfigScreen())
 
         except Exception as e:
             self.display_output(f"Error: {e}")
@@ -71,19 +86,21 @@ class HomeScreen(Screen):
         self.query_one("#output", Static).update(message)
 
 
-class ConfigScreen(Screen):
+class UpdateConfigScreen(Screen):
     """A dedicated screen for displaying and updating the car configuration."""
 
     def compose(self) -> ComposeResult:
-        yield Header()
-        yield Static("Car Configuration", id="config-title")
-        yield Button("Back", id="back-to-home")
-        yield Label(
-            "Here you can view and update the car's configuration.", id="config-desc"
+        yield Container(
+            Static("Car Management System", id="title"),
+            Button("<", id="back-to-home"),
+            id="header",
         )
 
+        yield Label(
+            f"Car ID: {self.app.car_id} | Owner ID: {self.app.owner_id}", id="car-info"
+        )
         with Vertical():
-            yield Button("Get Config", id="get-config")
+            yield Static("Update Car Configuration", id="config-title")
             yield Input(placeholder="Enter new configuration JSON", id="update-config")
             yield Button("Update Config", id="send-update-config")
 
@@ -91,16 +108,12 @@ class ConfigScreen(Screen):
         yield Footer()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        """Handle button presses on the ConfigScreen."""
+        """Handle button presses on the UpdateConfigScreen."""
         button_id = event.button.id
         app = self.app  # Get reference to the main app instance
 
         try:
-            if button_id == "get-config":
-                response = requests.get(f"{app.flask_url}/get-config")
-                self.display_output(response.text)
-
-            elif button_id == "send-update-config":
+            if button_id == "send-update-config":
                 new_config = self.query_one("#update-config", Input).value
                 if new_config:
                     response = requests.post(
@@ -120,14 +133,14 @@ class ConfigScreen(Screen):
         self.query_one("#config-output", Static).update(message)
 
 
-class simpleApp(App):
-    SCREENS = {"home": HomeScreen, "config": ConfigScreen}
+class CarApp(App):
+    SCREENS = {"home": HomeScreen, "config": UpdateConfigScreen}
     BINDINGS = [
         ("h", "push_screen('home')", "Home Screen"),
         ("c", "push_screen('config')", "Config Screen"),
     ]
 
-    CSS_PATH = "styles.tcss"
+    CSS_PATH = "styles.css"
 
     def __init__(self, car_id, owner_id, flask_url):
         super().__init__()
@@ -176,4 +189,4 @@ if __name__ == "__main__":
     flask_url = f"http://127.0.0.1:{5000 + int(car_id)}"
 
     # Run the app
-    simpleApp(car_id, owner_id, flask_url).run()
+    CarApp(car_id, owner_id, flask_url).run()
