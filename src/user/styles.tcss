@@ -1,0 +1,70 @@
+/* General Styling */
+Screen {
+    background: #1e1e2e; /* Dark background */
+    color: #cdd6f4;     /* Light text color */
+}
+
+/* Header and Footer */
+Header, Footer {
+    background: #313244; /* Darker shade for header/footer */
+    text-style: bold;
+    color: #f5e0dc;      /* Light text for contrast */
+}
+
+/* Title */
+#title {
+    padding: 1;
+    text-align: center;
+    color: #89b4fa; /* Light blue title */
+    text-style: bold;
+    border: round $primary; /* Rounded border for title */
+}
+
+/* Car Info */
+#car-info {
+    margin-top: 1;
+    text-align: center;
+    color: #a6e3a1; /* Light green text */
+    text-style: italic;
+}
+
+/* Static Widget Styling */
+Static {
+    margin: 1;
+    padding: 1;
+    border: round #45475a;
+}
+
+/* Buttons */
+Button {
+    margin: 1;
+    background: #585b70; /* Grayish background */
+    color: #f5e0dc;      /* Light text */
+    text-style: bold;
+    border: round $secondary;
+}
+
+Button:hover {
+    background: #89b4fa; /* Light blue when hovered */
+    color: #1e1e2e;      /* Dark text */
+}
+
+/* Input Fields */
+Input {
+    margin: 1;
+    padding: 1;
+    border: round #fab387; /* Peach border */
+    color: #cdd6f4;        /* Light text */
+    background: #313244;   /* Darker background */
+}
+
+/* Output Section */
+#output {
+    margin: 1;
+    padding: 1;
+    height: 5;
+    border: round $accent; /* Accent border */
+    color: #f38ba8;        /* Pinkish text */
+    background: #45475a;   /* Dark gray background */
+    overflow: hidden;
+}
