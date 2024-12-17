@@ -260,8 +260,7 @@ class PKI:
             .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
             .not_valid_after(
                 # Our certificate will be valid for ~10 years
-                datetime.datetime.now(datetime.timezone.utc)
-                + duration
+                datetime.datetime.now(datetime.timezone.utc) + duration
             )
             .add_extension(
                 x509.BasicConstraints(ca=True, path_length=None),
