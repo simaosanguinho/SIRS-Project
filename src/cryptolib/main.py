@@ -4,14 +4,14 @@ import sys
 from base64 import b64encode
 import base64
 import secrets
-
-# TODO: make this dynamic by taking AEAD algorithm dynamically
-# e.g       from cryptography.hazmat.primitives.ciphers import aead
-#           aead.__all__['AESGCM']
-from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 from rich import pretty
 from rich import print
 import datetime
+
+# TODO: make this dynamic by taking AEAD algorithm dynamically
+# from cryptography.hazmat.primitives.ciphers import aead
+# aead.__all__['AESGCM']
+from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 from cryptography.x509.oid import NameOID
@@ -32,74 +32,72 @@ EncryptionAlgo = ChaCha20Poly1305
 @click.argument("dummy_key")
 @click.argument("output_file")
 @click.option("--target_fields", "-t", multiple=True, required=True)
-@click.option("--authenticated_fields", "-a", multiple=True)
 def protect(
-    input_file,
-    dummy_key,
-    output_file,
+    input_file: str,
+    dummy_key: str,
+    output_file: str,
     target_fields: list[str],
-    authenticated_fields: list[str],
-):
-    # Open and read the JSON file
-    with open(input_file, "r") as file:
-        encrypted_dict = json.load(file)
+) -> None:
+    """
+    Command that encrypts the target fields in the input JSON file and writes
+    the result to the output file.
 
-    encrypted_dict = protect_lib(
-        encrypted_dict, dummy_key, target_fields, authenticated_fields
-    )
+    Args:
+        input_file (str): json file to be encrypted
+        dummy_key (str): key file to be used for encryption
+        output_file (str): output file to write the encrypted data
+        target_fields (list[str]): json fields to be encrypted
+    """
+    with open(input_file, "r", encoding="utf-8") as file:
+        data_dict = json.load(file)
 
-    with open(output_file, "w") as file:
-        json.dump(encrypted_dict, file, indent=4, ensure_ascii=False)
+    encrypted_data_dict = protect_lib(data_dict, dummy_key, target_fields)
+    print(f"Encrypted data: {encrypted_data_dict}")
 
-    # Decryption
-    """ for field in target_fields:
-        if (
-            field in encrypted_dict
-            and isinstance(encrypted_dict[field], dict)
-            and "ciphertext" in encrypted_dict[field]
-            and "nonce" in encrypted_dict[field]
-        ):
-            stored_nonce = base64.b64decode(encrypted_dict[field]["nonce"])
-            stored_ciphertext = base64.b64decode(encrypted_dict[field]["ciphertext"])
-            decrypted_value = encryption_algo.decrypt(
-                stored_nonce, stored_ciphertext, None
-            )  # TODO aead
-            print(f"Decrypted value for {field}:", json.loads(decrypted_value)) """
+    with open(output_file, "w", encoding="utf-8") as file:
+        json.dump(encrypted_data_dict, file, indent=4, ensure_ascii=False)
 
 
-def protect_lib(encrypted_dict, dummy_key, target_fields, authenticated_fields):
-    print("Original encrypted_dict:", encrypted_dict)
+def protect_lib(
+    data_dict: dict,
+    dummy_key: str,
+    target_fields: list[str],
+) -> dict:
+    """
+    Encrypts the target fields in the input dictionary and returns the encrypted
+    dictionary.
 
-    # Read and decode the key
-    with open(dummy_key, "r") as key_file:
-        key_base64 = key_file.read().strip()  # Remove newline
-        dummy_key_bytes = base64.b64decode(key_base64)
+    Args:
+        data_dict (dict): dictionary to be encrypted
+        dummy_key (str): key file to be used for encryption
+        target_fields (list[str]): fields to be encrypted
 
-    # Ensure the key is of valid length
-    if len(dummy_key_bytes) not in (16, 24, 32):
-        raise ValueError("Key must be 16, 24, or 32 bytes long for AES encryption.")
+    Returns:
+        dict: the dictionary with the target fields encrypted
+    """
 
-    encryption_algo = EncryptionAlgo(dummy_key_bytes)
-    nonce = secrets.token_bytes(12)  #
+    with open(dummy_key, "r", encoding="utf-8") as key_file:
+        dummy_key_bytes = base64.b64decode(key_file.read().strip())
 
-    # Encrypt only the target fields
+    nonce = secrets.token_bytes(12)
+
     for field in target_fields:
-        if field in encrypted_dict:
-            value_to_encrypt = json.dumps(
-                encrypted_dict[field], ensure_ascii=False
-            ).encode("utf-8")  # Ensure field value is bytes
-            # TODO: use authenticated fields param
-            encrypted_value = encryption_algo.encrypt(
+        if field in data_dict:
+            value_to_encrypt = json.dumps(data_dict[field], ensure_ascii=False).encode(
+                "utf-8"
+            )
+
+            encrypted_value = EncryptionAlgo(dummy_key_bytes).encrypt(
                 nonce, value_to_encrypt, None
-            )  # Replace `aad` with None or valid encrypted_dict
+            )
+
             # Replace the original value with the encrypted value (Base64 encoded for storage)
-            encrypted_dict[field] = {
+            data_dict[field] = {
                 "nonce": base64.b64encode(nonce).decode("utf-8"),
                 "ciphertext": base64.b64encode(encrypted_value).decode("utf-8"),
             }
 
-    print("Encrypted encrypted_dict:", encrypted_dict)
-    return encrypted_dict
+    return data_dict
 
 
 @cli.command()
@@ -107,46 +105,73 @@ def protect_lib(encrypted_dict, dummy_key, target_fields, authenticated_fields):
 @click.argument("dummy_key")
 @click.argument("output_file")
 @click.option("--target_fields", "-t", multiple=True, required=True)
-@click.option("--authenticated_fields", "-a", multiple=True)
 def unprotect(
-    input_file,
-    dummy_key,
-    output_file,
+    input_file: str,
+    dummy_key: str,
+    output_file: str,
     target_fields: list[str],
-    authenticated_fields: list[str],
-):
-    # Open and read the JSON file
-    with open(input_file, "r") as file:
-        encrypted_dict = json.load(file)
+) -> None:
+    """
+    Command that decrypts the target fields in the input JSON file and writes
+    the result to the output file.
 
-    print("Encrypted encrypted_dict:", encrypted_dict)
+    Args:
+        input_file (str): json file to be decrypted
+        dummy_key (str): key file to be used for decryption
+        output_file (str): output file to write the decrypted data
+        target_fields (list[str]): json fields to be decrypted
+    """
 
-    data = unprotect_lib(encrypted_dict, dummy_key, target_fields, authenticated_fields)
+    with open(input_file, "r", encoding="utf-8") as file:
+        encrypted_data_dict = json.load(file)
 
-    print(f"Decrypted data: {data}")
-    with open(output_file, "w+") as file:
-        json.dump(data, file, indent=4, ensure_ascii=False)
+    decrypted_data_dict = unprotect_lib(encrypted_data_dict, dummy_key, target_fields)
+    print(f"Decrypted data: {decrypted_data_dict}")
+
+    with open(output_file, "w+", encoding="utf-8") as file:
+        json.dump(decrypted_data_dict, file, indent=4, ensure_ascii=False)
 
 
-def unprotect_lib(encrypted_dict, dummy_key, target_fields, authenticated_fields):
-    print("Encrypted encrypted_dict:", encrypted_dict)
+def unprotect_lib(
+    encrypted_dict: dict, dummy_key: str, target_fields: list[str]
+) -> dict:
+    """
+    Decrypts the target fields in the input dictionary and returns the decrypted
 
-    # Read and decode the key
-    with open(dummy_key, "r") as key_file:
-        key_base64 = key_file.read().strip()  # Remove newline
-        dummy_key_bytes = base64.b64decode(key_base64)
+    Args:
+        encrypted_dict (dict): dictionary to be decrypted
+        dummy_key (str): key file to be used for decryption
+        target_fields (list[str]): fields to be decrypted
 
-    data = decrypt(encrypted_dict, dummy_key_bytes, target_fields, authenticated_fields)
+    Returns:
+        dict: the dictionary with the target fields decrypted
+    """
+
+    with open(dummy_key, "r", encoding="utf-8") as key_file:
+        dummy_key_bytes = base64.b64decode(key_file.read().strip())
+
+    data = decrypt(encrypted_dict, dummy_key_bytes, target_fields)
     return data
 
 
-def decrypt(encrypted_dict, key_bytes, target_fields, authenticated_fields):
-    encryption_algo = EncryptionAlgo(key_bytes)
+def decrypt(encrypted_dict: dict, key_bytes: bytes, target_fields: list[str]) -> dict:
+    """
+    Decrypts the target fields in the input dictionary and returns the decrypted dictionary.
 
-    final_dict = {}
-    final_dict = encrypted_dict.copy()
+    Args:
+        encrypted_dict (dict): dictionary to be decrypted
+        key_bytes (bytes): key to be used for decryption
+        target_fields (list[str]): fields to be decrypted
 
-    # Decryption
+    Raises:
+        ValueError: When the field is not in the dictionary or the field is not encrypted
+
+    Returns:
+        dict: the dictionary with the target fields decrypted
+    """
+
+    decrypted_dict = encrypted_dict.copy()
+
     for field in target_fields:
         if not (
             field in encrypted_dict
@@ -154,40 +179,33 @@ def decrypt(encrypted_dict, key_bytes, target_fields, authenticated_fields):
             and "ciphertext" in encrypted_dict[field]
             and "nonce" in encrypted_dict[field]
         ):
-            raise ValueError("Invalid arguments!")
+            raise ValueError("Invalid arguments for field: ", field)
 
         stored_nonce = base64.b64decode(encrypted_dict[field]["nonce"])
         stored_ciphertext = base64.b64decode(encrypted_dict[field]["ciphertext"])
-        print(f"Decrypting field {field}")
-        #           print(f"stored_nonce={stored_nonce}\nstored_ciphertext={stored_ciphertext}, aead=None")
-        decrypted_value = encryption_algo.decrypt(
-            stored_nonce, stored_ciphertext, None
-        )  # aead
-        print(f"Decrypted value for {field}:", json.loads(decrypted_value))
-        final_dict[field] = json.loads(decrypted_value)
 
-    return final_dict
+        decrypted_value = EncryptionAlgo(key_bytes).decrypt(
+            stored_nonce, stored_ciphertext, None
+        )
+        print(f"Decrypted value for {field}:", json.loads(decrypted_value))
+        decrypted_dict[field] = json.loads(decrypted_value)
+
+    return decrypted_dict
 
 
 @cli.command()
 @click.argument("input_file")
 @click.argument("dummy_key")
 @click.option("--target_fields", "-t", multiple=True, required=True)
-@click.option("--authenticated_fields", "-a", multiple=True)
-def check(input_file, dummy_key, target_fields, authenticated_fields):
+def check(input_file: str, dummy_key: str, target_fields: list[str]) -> bool:
     try:
-        # Open and read the JSON file
-        with open(input_file, "r") as file:
+        with open(input_file, "r", encoding="utf-8") as file:
             encrypted_dict = json.load(file)
 
-        # Read and decode the key
-        with open(dummy_key, "r") as key_file:
-            key_base64 = key_file.read().strip()  # Remove newline
-            dummy_key_bytes = base64.b64decode(key_base64)
+        with open(dummy_key, "r", encoding="utf-8") as key_file:
+            dummy_key_bytes = base64.b64decode(key_file.read().strip())
 
-        print(f"encrypted_dict = {encrypted_dict}")
-        decrypt(encrypted_dict, dummy_key_bytes, target_fields, authenticated_fields)
-
+        decrypt(encrypted_dict, dummy_key_bytes, target_fields)
         return True
 
     except InvalidTag:
@@ -195,51 +213,17 @@ def check(input_file, dummy_key, target_fields, authenticated_fields):
         return False
     except Exception as e:
         print(f"Uncaught excpetion! {e}")
+        return False
 
 
 @cli.command()
 @click.argument("output_file")
-def generate_key(output_file):
+def generate_key(output_file: str):
     key = ChaCha20Poly1305.generate_key()
     with open(output_file, "wb+") as f:
         key_encoded = b64encode(key)
         print(f"key_encoded={key_encoded}")
         f.write(key_encoded)
-
-
-# @cli.command()
-# try to see if I can have the command be different from the function name.
-# this function breaks python REPL.
-# def help():
-#    # FIXME
-#    raise NotImplementedError
-
-
-def encrypt_data(encrypted_dict, aad, key=None, nonce=None):
-    if not nonce:
-        nonce = secrets.token_bytes(12)
-    chacha = ChaCha20Poly1305(key)
-    return chacha.encrypt(nonce, encrypted_dict, aad)
-
-
-def dict_to_bytes(d: dict, keys: list[str] = None):
-    """
-    TODO: docstrings
-    """
-    if not keys:
-        final_d = d
-    else:
-        final_d = {}
-        for key in keys:
-            final_d[key] = d[key]
-
-    return bytes(
-        json.dumps(final_d, sort_keys=True, ensure_ascii=False), encoding="utf-8"
-    )
-
-
-def bytes_to_dict(encrypted_dict: bytes) -> dict:
-    return json.loads(encrypted_dict)
 
 
 class PKI:
@@ -276,7 +260,8 @@ class PKI:
             .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
             .not_valid_after(
                 # Our certificate will be valid for ~10 years
-                datetime.datetime.now(datetime.timezone.utc) + duration
+                datetime.datetime.now(datetime.timezone.utc)
+                + duration
             )
             .add_extension(
                 x509.BasicConstraints(ca=True, path_length=None),
@@ -442,14 +427,6 @@ class PKI:
     def verify_cert(self):
         return NotImplementedError
 
-
-# def encrypt_field(doc: dict, key: bytes, field: str, authenticated_fields: list[str]):
-
-#    if not key:
-#        key = ChaCha20Poly1305.generate_key()
-
-# click.option('--count', default=1, help='number of greetings')
-# @click.argument('name')
 
 if __name__ == "__main__":
     if not sys.flags.interactive:

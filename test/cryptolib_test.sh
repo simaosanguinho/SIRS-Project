@@ -20,11 +20,11 @@ fi
 
 # Execute the command
 if [ "$1" == "run_protect" ]; then
-  python3 $PROGRAM protect $INPUT $CHACHA_KEY $OUTPUT_PROTECTED -t configuration -t firmware -a user
+  python3 $PROGRAM protect $INPUT $CHACHA_KEY $OUTPUT_PROTECTED -t configuration -t firmware
 fi
 
 if [ "$1" == "run_unprotect" ]; then
-  python3 $PROGRAM unprotect $OUTPUT_PROTECTED $CHACHA_KEY $OUTPUT_UNPROTECTED -t configuration -t firmware -a user
+  python3 $PROGRAM unprotect $OUTPUT_PROTECTED $CHACHA_KEY $OUTPUT_UNPROTECTED -t configuration -t firmware
 fi
 
 if [ "$1" == "gen_key_aes" ]; then
