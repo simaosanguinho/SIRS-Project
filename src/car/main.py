@@ -97,6 +97,12 @@ def charge_battery():
     return check_battery()
 
 
+# DEBUG ENDPOINTS
+@app.route("/debug/get-doc")
+def get_car_document():
+    return json.dumps(car.build_car_document(car.config))
+
+
 # Use environment variable to set config path - DEFAULT_CONFIG_PATH
 default_config_path = os.getenv("DEFAULT_CONFIG_PATH")
 if not default_config_path:
