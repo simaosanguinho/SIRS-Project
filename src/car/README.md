@@ -11,25 +11,21 @@ python3 main.py <CAR_ID>
 
 Ports start at address 5000.
 
-
 ### Available Endpoints:
 
 - /update-config the client can change a car config
 
 ```sh
-curl -X POST http://127.0.0.1:5000/update-config \
+curl -X POST http://127.0.0.1:5001/update-config \
 -H "Content-Type: application/json" \
 -d '{
     "carId": 1,
     "user": "user1",
     "configuration": {
-        "nonce": "RpuhCQqQjbKS2DYN",
-        "ciphertext": "WVn5v5dKqxn7EXaKcaaFLTj2X5WwJyKqjIRUMnLlKatwJsrbvZNJ/cR6pgRFe+EDlPQi0HeogKN7havirUFfGsAwf83XuE68uHQWF2+90mkPRNgIe5fw7H3byeh0acTrD2KSn3i+bciA8PiIlUW+vIa4L64xB6/S+mahkA=="
+        "nonce": "WqrOG7T8Byua95wX",
+        "ciphertext": "BL8nih7IXoizrzD8QZugFaw8qw+xzdDA66IrbOtYgkn7lCH97TugvpaJ2+hkKzyd1NUWRkDRrNsvQ0Li68arBFCyTUyyovzMUPBPcsTBeme9FBI8imMkCEFzgywUScMQBaOlb5nHLb64LR66NBgFeh5CwUhAGg4DzTcM5C+ZdFzQImSa1q55Ee8M+SzPDr4="
     },
-    "firmware": {
-        "nonce": "RpuhCQqQjbKS2DYN",
-        "ciphertext": "AEm6OQnrI5FxKRwMi0oDmLVdHQ=="
-    }
+    "firmware": {"nonce": "WqrOG7T8Byua95wX", "ciphertext": "Xa9k+LtOspIVGtSlU0b+Uozx1g=="}
 }'
 
 ```

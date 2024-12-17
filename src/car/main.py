@@ -6,9 +6,11 @@ import cryptolib.main as cryptolib
 
 
 class Car:
-    def __init__(self, default_config):
+    def __init__(self, default_config, car_id, owner_id):
         self.maintnaince_mode = False
         self.config = {}
+        self.id = car_id
+        self.user_id = owner_id
         with open(default_config, "r") as file:
             self.config = json.load(file)
             print("Default Config", self.config)
@@ -21,6 +23,13 @@ class Car:
         return user in self.config["user"]
 
     # add method to build the car document (carid, user, config, firmware)
+    def build_car_document(self, config):
+        return {
+            "carID": self.id,
+            "user": self.user_id,
+            "config": config,
+            "firmware": "v1.0",
+        }
 
 
 app = Flask(__name__)
@@ -28,7 +37,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def root():
-    return "<h3>Welcome to the Car App!  </h3> Car ID: " + str(car.config["carId"])
+    return "<h3>Welcome to the Car App!  </h3> Car ID: " + str(car.id)
 
 
 @app.route("/maintenance-mode/<mode>")
@@ -57,7 +66,7 @@ def update_config():
     # Change the hardcoded values
 
     car.config = cryptolib.unprotect_lib(
-        data, "../../test/keys/chacha.key", ["configuration", "firmware"], ["user"]
+        data, "../../test/keys/chacha.key", ["configuration", "firmware"]
     )
     config_str = json.dumps(car.config)
     return "Config updated" + config_str
@@ -79,7 +88,7 @@ if not default_config_path:
 if __name__ == "__main__":
     import sys
 
-    car = Car(default_config_path)
+    car = Car(default_config_path, sys.argv[1], sys.argv[2])
     # set different port for car based on id
     port = 5000 + int(sys.argv[1])
     app.run(port=port)
