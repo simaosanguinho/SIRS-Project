@@ -14,6 +14,13 @@ import datetime
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.serialization import (
+    load_pem_private_key,
+    load_pem_public_key,
+)
+import hashlib
+from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import NameOID
 from cryptography import x509
 from cryptography.exceptions import InvalidTag
@@ -224,6 +231,71 @@ def generate_key(output_file: str):
         key_encoded = b64encode(key)
         print(f"key_encoded={key_encoded}")
         f.write(key_encoded)
+
+def load_private_key(file_path):
+    """Loads an RSA private key from a file."""
+    with open(file_path, "rb") as key_file:
+        private_key = load_pem_private_key(
+            key_file.read(), password=None, backend=default_backend()
+        )
+    return private_key
+
+
+def load_public_key(file_path):
+    """Loads an RSA public key from a file."""
+    with open(file_path, "rb") as key_file:
+        public_key = load_pem_public_key(key_file.read(), backend=default_backend())
+    return public_key
+
+
+def sha256_hash(data):
+    """Calculates the SHA-256 hash of the given data."""
+    hash_object = hashlib.sha256(data.encode("utf-8"))
+    sha256 = hash_object.hexdigest()
+    return sha256
+
+
+def sign_data(file_path, data):
+    """Signs the given data (SHA-256 hash) using the private key."""
+    # Calculate hash
+    private_key = load_private_key(file_path)
+    # data to bytes
+    data_hash = sha256_hash(data)
+
+    # Sign the hash
+    signature = private_key.sign(
+        data_hash.encode("utf-8"),
+        padding.PSS(
+            mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH
+        ),
+        hashes.SHA256(),
+    )
+    signature = base64.b64encode(signature)
+
+    return signature.decode("utf-8")
+
+
+def verify_signature(file_path, data, signature):
+    """Verifies the signature of the given data using the public key."""
+    data_hash = sha256_hash(data)
+    # Decode the signature
+    signature = base64.b64decode(signature)
+    # Load the public key
+    public_key = load_public_key(file_path)
+
+    try:
+        public_key.verify(
+            signature,
+            data_hash.encode("utf-8"),
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH
+            ),
+            hashes.SHA256(),
+        )
+        return True
+    except Exception as e:
+        print("Verification failed:", e)
+        return False
 
 
 class PKI:
