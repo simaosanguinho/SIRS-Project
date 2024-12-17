@@ -11,6 +11,8 @@ class Car:
         self.config = {}
         self.id = car_id
         self.user_id = owner_id
+        self.battery_level = 100
+        self.op_count = 0
         with open(default_config, "r") as file:
             self.config = json.load(file)
             print("Default Config", self.config)
@@ -69,6 +71,12 @@ def update_config():
         data, "../../test/keys/chacha.key", ["configuration", "firmware"]
     )
     config_str = json.dumps(car.config)
+
+    car.op_count += 1
+    if car.op_count > 10:
+        car.op_count = 0
+        car.battery_level -= 5
+
     return "Config updated" + config_str
 
 
@@ -77,7 +85,17 @@ def get_config():
     return json.dumps(car.config)
 
 
-# CHECK BATTERY LEVEL
+@app.route("/check-battery")
+def check_battery():
+    return f"Battery Level: {car.battery_level} %"
+
+
+@app.route("/charge-battery")
+def charge_battery():
+    car.battery_level = 100
+    car.op_count = 0
+    return check_battery()
+
 
 # Use environment variable to set config path - DEFAULT_CONFIG_PATH
 default_config_path = os.getenv("DEFAULT_CONFIG_PATH")
