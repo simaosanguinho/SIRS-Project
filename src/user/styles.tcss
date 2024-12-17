@@ -1,70 +1,80 @@
-/* General Styling */
+/* General App Styling */
 Screen {
-    background: #1e1e2e; /* Dark background */
-    color: #cdd6f4;     /* Light text color */
+    background: $background;
+    color: $foreground;
 }
 
-/* Header and Footer */
-Header, Footer {
-    background: #313244; /* Darker shade for header/footer */
+/* Header and Footer Styling */
+Header {
+    background: $panel;
+    color: $primary;
     text-style: bold;
-    color: #f5e0dc;      /* Light text for contrast */
 }
 
-/* Title */
+Footer {
+    background: $panel;
+    color: $primary;
+}
+
+/* Title Styling */
 #title {
-    padding: 1;
+    margin: 1 0;
     text-align: center;
-    color: #89b4fa; /* Light blue title */
+    color: $accent;
     text-style: bold;
-    border: round $primary; /* Rounded border for title */
+    border: wide $surface;
 }
 
-/* Car Info */
+/* Car Info Label Styling */
 #car-info {
-    margin-top: 1;
+    margin: 1 0;
     text-align: center;
-    color: #a6e3a1; /* Light green text */
-    text-style: italic;
+    color: $secondary;
+    text-style: bold;
 }
 
-/* Static Widget Styling */
+/* Section Titles (e.g., Maintenance Mode, Configuration, Battery Management) */
 Static {
-    margin: 1;
-    padding: 1;
-    border: round #45475a;
+    margin: 1 0;
+    text-style: bold;
+    color: $primary;
 }
 
-/* Buttons */
+/* Button Styling */
 Button {
     margin: 1;
-    background: #585b70; /* Grayish background */
-    color: #f5e0dc;      /* Light text */
-    text-style: bold;
-    border: round $secondary;
+    background: $panel;
+    color: $foreground;
+    border: tall $surface;
 }
 
 Button:hover {
-    background: #89b4fa; /* Light blue when hovered */
-    color: #1e1e2e;      /* Dark text */
+    background: $accent;
+    color: $background;
 }
 
-/* Input Fields */
+Button:focus {
+    border: wide $success;
+}
+
+/* Input Field Styling */
 Input {
-    margin: 1;
-    padding: 1;
-    border: round #fab387; /* Peach border */
-    color: #cdd6f4;        /* Light text */
-    background: #313244;   /* Darker background */
+    background: $surface;
+    color: $foreground;
+    border: tall $panel;
 }
 
-/* Output Section */
+Input:focus {
+    border: wide $accent;
+    background: $panel;
+    color: $primary;
+}
+
+/* Output Section Styling */
 #output {
-    margin: 1;
+    margin-top: 1;
+    background: $surface;
+    color: $warning;
+    border: wide $panel;
     padding: 1;
-    height: 5;
-    border: round $accent; /* Accent border */
-    color: #f38ba8;        /* Pinkish text */
-    background: #45475a;   /* Dark gray background */
-    overflow: hidden;
 }

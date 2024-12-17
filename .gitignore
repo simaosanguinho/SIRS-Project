@@ -150,4 +150,5 @@ keys/*
 /test/output_unprotected.json
 basic.json
 .pre-commit-config.yaml
+/src/user/simple_app.py
 
