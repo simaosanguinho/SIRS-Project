@@ -30,10 +30,7 @@ from cryptography.exceptions import InvalidTag
 def cli():
     pass
 
-
 EncryptionAlgo = ChaCha20Poly1305
-
-
 @cli.command()
 @click.argument("input_file")
 @click.argument("dummy_key")

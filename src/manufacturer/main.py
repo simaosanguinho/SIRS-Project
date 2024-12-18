@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 import time
-import cryptolib.main as cryptolib
+import cryptolib
 
 class Manufacturer:
     def __init__(self, id):

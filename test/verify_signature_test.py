@@ -1,6 +1,6 @@
 import requests
 import os
-import cryptolib.main as cryptolib
+import cryptolib
 
 # Configuration
 MANUFACTURER_URL = "http://127.0.0.1:5201"  # Adjust port as needed

@@ -2,7 +2,7 @@ from flask import Flask, request
 import json
 import os
 
-import cryptolib.main as cryptolib
+import cryptolib
 
 
 class Car:
