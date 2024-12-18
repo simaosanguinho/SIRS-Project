@@ -31,3 +31,4 @@ The available commads are:
 - https://security.stackexchange.com/questions/74345/provide-subjectaltname-to-openssl-directly-on-the-command-line
 - https://github.com/tecnico-sec/Java-Crypto-Details
 - https://kubernetes.io/docs/tasks/administer-cluster/certificates/
+- https://www.yubico.com/resources/glossary/what-is-certificate-based-authentication/

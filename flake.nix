@@ -66,6 +66,7 @@
             shellHook = ''
               # export DEBUG=1
               ${config.pre-commit.installationScript}
+               export PYTHONPATH=$(pwd)/src:$PYTHONPATH
             '';
 
           };
