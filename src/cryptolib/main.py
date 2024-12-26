@@ -22,15 +22,18 @@ from cryptography.hazmat.primitives.serialization import (
 import hashlib
 from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import NameOID
-from cryptography import x509
+from cryptography.x509 import load_pem_x509_certificate
+from cryptography.x509.verification import PolicyBuilder, Store
 from cryptography.exceptions import InvalidTag
-
 
 @click.group()
 def cli():
     pass
 
+
 EncryptionAlgo = ChaCha20Poly1305
+
+
 @cli.command()
 @click.argument("input_file")
 @click.argument("dummy_key")
@@ -300,201 +303,23 @@ class PKI:
     Manages (MotorIST) Public Key Infrastructure.
     """
 
-    def __init__(self):
-        self.subject = self.issuer = x509.Name(
-            [
-                x509.NameAttribute(NameOID.COUNTRY_NAME, "PT"),
-                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Lisbon"),
-                x509.NameAttribute(NameOID.LOCALITY_NAME, "Lisbon"),
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, "MotorIST Lda."),
-                x509.NameAttribute(NameOID.COMMON_NAME, "MotorIST Root CA"),
-            ]
-        )
-        self.root_key = None
+    def __init__(self, root_cacert_path):
+        with open(root_cacert_path, "rb") as f:
+            cacert_bytes = f.read()
+        self.root_ca = PKI.load_certificate(cacert_bytes)
+        store = Store(self.root_ca)
+        self.__policy_builder = PolicyBuilder().store(store)
 
-    def gen_root_ca(self, duration=None):
-        if not self.root_key:
-            # Generate our key
-            self.root_key = ec.generate_private_key(ec.SECP256R1())
+    def verify_cert(self, cert_path):
+        cert = load_pem_x509_certificate(cert_path)
 
-        if not duration:
-            duration = datetime.timedelta(days=365 * 10)
+        
 
-        self.root_cert = (
-            x509.CertificateBuilder()
-            .subject_name(self.subject)
-            .issuer_name(self.issuer)
-            .public_key(self.root_key.public_key())
-            .serial_number(x509.random_serial_number())
-            .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
-            .not_valid_after(
-                # Our certificate will be valid for ~10 years
-                datetime.datetime.now(datetime.timezone.utc) + duration
-            )
-            .add_extension(
-                x509.BasicConstraints(ca=True, path_length=None),
-                critical=True,
-            )
-            .add_extension(
-                x509.KeyUsage(
-                    digital_signature=True,
-                    content_commitment=False,
-                    key_encipherment=False,
-                    data_encipherment=False,
-                    key_agreement=False,
-                    key_cert_sign=True,
-                    crl_sign=True,
-                    encipher_only=False,
-                    decipher_only=False,
-                ),
-                critical=True,
-            )
-            .add_extension(
-                x509.SubjectKeyIdentifier.from_public_key(self.root_key.public_key()),
-                critical=False,
-            )
-            .sign(self.root_key, hashes.SHA256())
-        )
-
-    def gen_int_ca(self):
-        if not (self.root_key and self.root_cert):
-            raise ValueError("No root key and/or cert defined.")
-        # Generate our intermediate key
-        int_key = ec.generate_private_key(ec.SECP256R1())
-        subject = x509.Name(
-            [
-                x509.NameAttribute(NameOID.COUNTRY_NAME, "PT"),
-                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Lisbon"),
-                x509.NameAttribute(NameOID.LOCALITY_NAME, "Lisbon"),
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Motorist Lda."),
-                x509.NameAttribute(NameOID.COMMON_NAME, "MotorIST Root CA"),
-            ]
-        )
-        self.int_cert = (
-            x509.CertificateBuilder()
-            .subject_name(subject)
-            .issuer_name(self.root_cert.subject)
-            .public_key(int_key.public_key())
-            .serial_number(x509.random_serial_number())
-            .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
-            .not_valid_after(
-                # Our intermediate will be valid for ~3 years
-                datetime.datetime.now(datetime.timezone.utc)
-                + datetime.timedelta(days=365 * 3)
-            )
-            .add_extension(
-                # Allow no further intermediates (path length 0)
-                x509.BasicConstraints(ca=True, path_length=0),
-                critical=True,
-            )
-            .add_extension(
-                x509.KeyUsage(
-                    digital_signature=True,
-                    content_commitment=False,
-                    key_encipherment=False,
-                    data_encipherment=False,
-                    key_agreement=False,
-                    key_cert_sign=True,
-                    crl_sign=True,
-                    encipher_only=False,
-                    decipher_only=False,
-                ),
-                critical=True,
-            )
-            .add_extension(
-                x509.SubjectKeyIdentifier.from_public_key(int_key.public_key()),
-                critical=False,
-            )
-            .add_extension(
-                x509.AuthorityKeyIdentifier.from_issuer_subject_key_identifier(
-                    self.root_cert.extensions.get_extension_for_class(
-                        x509.SubjectKeyIdentifier
-                    ).value
-                ),
-                critical=False,
-            )
-            .sign(self.root_key, hashes.SHA256())
-        )
-
-    def gen_server_cert(self, server_name):
-        # Generate and end-entity cert and key.
-        ee_key = ec.generate_private_key(ec.SECP256R1())
-        subject = x509.Name(
-            [
-                x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
-                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "California"),
-                x509.NameAttribute(NameOID.LOCALITY_NAME, "San Francisco"),
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, "My Company"),
-            ]
-        )
-        ee_cert = (
-            x509.CertificateBuilder()
-            .subject_name(subject)
-            .issuer_name(self.int_cert.subject)
-            .public_key(ee_key.public_key())
-            .serial_number(x509.random_serial_number())
-            .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
-            .not_valid_after(
-                # Our cert will be valid for 10 days
-                datetime.datetime.now(datetime.timezone.utc)
-                + datetime.timedelta(days=10)
-            )
-            .add_extension(
-                x509.SubjectAlternativeName(
-                    [
-                        # Describe what sites we want this certificate for.
-                        x509.DNSName(server_name),
-                    ]
-                ),
-                critical=False,
-            )
-            .add_extension(
-                x509.BasicConstraints(ca=False, path_length=None),
-                critical=True,
-            )
-            .add_extension(
-                x509.KeyUsage(
-                    digital_signature=True,
-                    content_commitment=False,
-                    key_encipherment=True,
-                    data_encipherment=False,
-                    key_agreement=False,
-                    key_cert_sign=False,
-                    crl_sign=True,
-                    encipher_only=False,
-                    decipher_only=False,
-                ),
-                critical=True,
-            )
-            .add_extension(
-                x509.ExtendedKeyUsage(
-                    [
-                        x509.ExtendedKeyUsageOID.CLIENT_AUTH,
-                        x509.ExtendedKeyUsageOID.SERVER_AUTH,
-                    ]
-                ),
-                critical=False,
-            )
-            .add_extension(
-                x509.SubjectKeyIdentifier.from_public_key(ee_key.public_key()),
-                critical=False,
-            )
-            .add_extension(
-                x509.AuthorityKeyIdentifier.from_issuer_subject_key_identifier(
-                    self.int_cert.extensions.get_extension_for_class(
-                        x509.SubjectKeyIdentifier
-                    ).value
-                ),
-                critical=False,
-            )
-            .sign(self.int_key, hashes.SHA256())
-        )
-
-    # TODO: serialize keys & certs to disk
-
-    def verify_cert(self):
-        return NotImplementedError
-
+    @staticmethod
+    def load_certificate(cert_path):
+        with open(cert_path, "rb") as f:
+            cert_bytes = f.read()
+        return load_pem_x509_certificate(cert_bytes)
 
 if __name__ == "__main__":
     if not sys.flags.interactive:
