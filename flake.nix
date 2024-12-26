@@ -1,6 +1,11 @@
 {
   description = "SIRS Project flake";
 
+  nixConfig = {
+    extra-substituters = [ "https://microvm.cachix.org" ];
+    extra-trusted-public-keys = [ "microvm.cachix.org-1:oXnBc6hRE3eX5rSYdRyMYXnfzcCxC7yKPTbZXALsqys=" ];
+  };
+
   inputs = {
     flake-parts = {
       url = "github:hercules-ci/flake-parts";
@@ -16,10 +21,18 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    microvm = {
+      url = "github:astro/microvm.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     inputs@{ flake-parts, ... }:
+    let
+      lib = inputs.nixpkgs.lib // inputs.flake-parts.lib;
+    in
+
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         # To import a flake module
@@ -38,9 +51,10 @@
       perSystem =
         { config
         , pkgs
+        , inputs'
         , ...
         }:
-        rec {
+        {
           # Per-system attributes can be defined here. The self' and inputs'
           # module parameters provide easy access to attributes of the same
           # system.
@@ -50,6 +64,7 @@
 
           devShells.default = pkgs.mkShell {
             packages = [
+              # Dev
               (pkgs.python3.withPackages (python-pkgs: with python-pkgs; [
                 click
                 cryptography
@@ -63,6 +78,10 @@
               pkgs.openssl
               pkgs.step-ca
               pkgs.step-cli
+
+              # Infra
+              inputs'.microvm.packages.microvm
+
             ];
             shellHook = ''
               # export DEBUG=1
@@ -106,6 +125,8 @@
 
 
       flake = {
+        inherit lib;
+        nixosConfigurations = import ./infra/hosts.nix { inherit inputs; inherit lib; };
         # The usual flake attributes can be defined here, including system-
         # agnostic ones like nixosModule and system-enumerating ones, although
         # those are more easily expressed in perSystem.
