@@ -30,10 +30,35 @@ class Car:
         self.user_id = owner_id
         self.battery_level = 100
         self.op_count = 0
-        with open(default_config, "r") as file:
-            self.config = json.load(file)["configuration"]
-            print("Default Config", self.config)
-            self.store_update(json.dumps(self.config))
+        config = None
+        # if there is a config in the database, use that
+        try:
+            with pool.connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        SELECT config
+                        FROM updates
+                        WHERE car_id = %(car_id)s
+                        AND user_id = %(user_id)s
+                        ORDER BY id DESC
+                        LIMIT 1;
+                        """,
+                        {"car_id": self.id, "user_id": self.user_id},
+                    )
+                    config = cur.fetchone()
+        except Exception as e:
+            raise (e)
+        # existent config was found
+        if config:
+            self.config = config[0]
+            print("Config from DB", self.config)
+        # no config found, use default
+        else:
+            with open(default_config, "r") as file:
+                self.config = json.load(file)["configuration"]
+                print("Default Config", self.config)
+                self.store_update(json.dumps(self.config))
 
     def setConfig(self, config_path):
         with open(config_path, "r") as file:
