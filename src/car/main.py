@@ -70,6 +70,28 @@ class Car:
         except Exception as e:
             raise (e)
 
+    def get_current_config(self):
+        try:
+            with pool.connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        SELECT config
+                        FROM updates
+                        WHERE car_id = %(car_id)s
+                        AND user_id = %(user_id)s
+                        ORDER BY id DESC
+                        LIMIT 1;
+                        """,
+                        {"car_id": self.id, "user_id": self.user_id},
+                    )
+                    config = cur.fetchone()
+
+            return json.dumps(config)
+
+        except Exception as e:
+            raise (e)
+
 
 @app.route("/")
 def root():
@@ -127,22 +149,11 @@ def update_config():
 
 @app.route("/get-config")
 def get_config():
-    config = None
-    with pool.connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT config
-                FROM updates
-                WHERE car_id = %(car_id)s
-                ORDER BY id DESC
-                LIMIT 1;
-                """,
-                {"car_id": car.id},
-            )
-            config = cur.fetchone()
-
-    return json.dumps(config)
+    try:
+        config = car.get_current_config()
+        return config
+    except Exception as e:
+        return f"Error: {e}"
 
 
 @app.route("/check-battery")

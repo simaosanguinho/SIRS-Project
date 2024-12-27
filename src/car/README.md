@@ -19,16 +19,16 @@ Ports start at address 5000.
 curl -X POST http://127.0.0.1:5001/update-config \
 -H "Content-Type: application/json" \
 -d '{
-  "carId": 1,
-  "user": "user1",
-  "configuration": {
-    "nonce": "y4GTeAOllv4s28VY",
-    "ciphertext": "FiOITJ1bG6R1pDUcsbtfw+gkU6x0ATwpMVDil62+qWQsrQilhG65Hx1Pqcc1PtjlNwUY4kd9HgqfqRM+W9xCzq/LeZPOmiMk7lRmmn6EeGTNVVIHZMJIvmd0P00oS88FZQSvUQmx0QFRot/bxDVnDAFg9RSx5msp714X2ckRCXjdzg8BzlAGaBnouKW2vb0="
-  },
-  "firmware": {
-    "nonce": "y4GTeAOllv4s28VY",
-    "ciphertext": "TzPLs+RjC13OvJX25mvfF3NiyA=="
-  }
+    "carId": 1,
+    "user": "user1",
+    "configuration": {
+        "nonce": "rh8vYjTDPfqVnpbU",
+        "ciphertext": "Zms6TnhM0FB+e7Ci+K3UNmz2N04sN4nx9Wto7vRRV9n5kIlMHPb8S9EVXYVnEEHbWvq5DVIjFFkjtPj+1eK3DBIlp8nVbK4ukL99Ikq1qV3zBHOS3QwEF3GZj1M2mFJvIGV99qYn+91VRS4IlNFCmx8rFiSy0HNxbpuyGsPD1mNkN9Vj9DSh1NgdggY5wvUJlaM="
+    },
+    "firmware": {
+        "nonce": "rh8vYjTDPfqVnpbU",
+        "ciphertext": "P3t5WuC0YYkF4Mr+cUxzjm1Q7A=="
+    }
 }'
 
 ```
