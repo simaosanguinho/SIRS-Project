@@ -5,6 +5,8 @@ import os
 import cryptolib
 from psycopg_pool import ConnectionPool
 
+app = Flask(__name__)
+
 # Database connection parameters
 DB_HOST = "localhost"
 DB_PORT = 7464
@@ -48,8 +50,25 @@ class Car:
             "firmware": "v1.0",
         }
 
-
-app = Flask(__name__)
+    def store_update(self, config):
+        try:
+            with pool.connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        INSERT INTO updates (car_id, user_id, config, firmware)
+                        VALUES (%(car_id)s, %(user_id)s, %(config)s, %(firmware)s);
+                        """,
+                        {
+                            "car_id": self.id,
+                            "user_id": self.user_id,
+                            "config": config,
+                            "firmware": "v1.0",
+                        },
+                    )
+                conn.commit()
+        except Exception as e:
+            raise (e)
 
 
 @app.route("/")
@@ -98,28 +117,32 @@ def update_config():
         car.op_count = 0
         car.battery_level -= 5
 
-    with pool.connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO updates (car_id, user_id, config, firmware)
-                VALUES (%(car_id)s, %(user_id)s, %(config)s, %(firmware)s);
-                """,
-                {
-                    "car_id": car.id,
-                    "user_id": car.user_id,
-                    "config": config_json,
-                    "firmware": "v1.0",
-                },
-            )
-        conn.commit()
+    try:
+        car.store_update(config_json)
+    except Exception as e:
+        return f"Error: {e}"
 
     return "Config updated" + config_json
 
 
 @app.route("/get-config")
 def get_config():
-    return json.dumps(car.config)
+    config = None
+    with pool.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT config
+                FROM updates
+                WHERE car_id = %(car_id)s
+                ORDER BY id DESC
+                LIMIT 1;
+                """,
+                {"car_id": car.id},
+            )
+            config = cur.fetchone()
+
+    return json.dumps(config)
 
 
 @app.route("/check-battery")
