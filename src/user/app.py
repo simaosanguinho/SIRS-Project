@@ -179,7 +179,7 @@ if __name__ == "__main__":
 
     # Parse command-line arguments
     if len(sys.argv) != 3:
-        print("Usage: python textual_car_app.py <car_id> <owner_id>")
+        print("Usage: python3 app.py <car_id> <owner_id>")
         sys.exit(1)
 
     car_id = sys.argv[1]
