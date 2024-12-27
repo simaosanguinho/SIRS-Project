@@ -58,7 +58,7 @@
                 textual-dev # For developing Textual apps
                 rich # For development/pretty print
                 flask
-		psycopg-pool
+                psycopg-pool
               ]))
               pkgs.openssl
               pkgs.step-ca
