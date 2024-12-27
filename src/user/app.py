@@ -95,24 +95,28 @@ class UpdateConfigScreen(Screen):
     """A dedicated screen for displaying and updating the car configuration."""
 
     def compose(self) -> ComposeResult:
-        yield Container(
-            Static("Car Management System", id="title"),
-            Button("<", id="back-to-home"),
-            id="header",
-        )
+        yield Static("Car Management System", id="title")
 
-        yield Label(
-            f"Car ID: {self.app.car_id} | Owner ID: {self.app.owner_id}", id="car-info"
-        )
-        with Vertical():
-            yield Static("Update Car Configuration", id="config-title")
-            self.config_input = Input(
-                placeholder="Enter new configuration JSON", id="update-config"
-            )
-            yield self.config_input
-            yield Button("Update Config", id="send-update-config")
+        with Vertical(classes="vertical"):
+            with Horizontal(classes="horizontal"):
+                yield Container(
+                    Label(
+                        f"Car ID: {self.app.car_id} | Owner ID: {self.app.owner_id}",
+                        id="car-info",
+                    ),
+                    Button("<", id="back-to-home"),
+                    id="controls",
+                )
 
-        yield Static("Output:", id="config-output")
+            with Vertical(classes="vertical"):
+                yield Static("Edit Car Configuration:", id="config-title")
+                self.config_input = Input(
+                    placeholder="Enter new configuration JSON", id="update-config"
+                )
+                yield self.config_input
+                yield Button("Update Config", id="send-update-config")
+
+        yield Static("Output:", id="output")
         yield Footer()
 
     def on_mount(self) -> None:
@@ -144,8 +148,6 @@ class UpdateConfigScreen(Screen):
                 new_config_str = self.query_one("#update-config", Input).value
                 new_config = json.loads(new_config_str)[0] if new_config_str else None
 
-                self.display_output("Updating configuration...")
-
                 if new_config:
                     car_doc_unprotected = {
                         "carID": app.car_id,
@@ -174,7 +176,7 @@ class UpdateConfigScreen(Screen):
 
     def display_output(self, message: str) -> None:
         """Display output to the user on the config page."""
-        self.query_one("#config-output", Static).update(message)
+        self.query_one("#output", Static).update(message)
 
 
 class CarApp(App):

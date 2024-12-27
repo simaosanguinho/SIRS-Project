@@ -89,7 +89,7 @@ Input:focus {
     background: $panel;
     color: $text;
     padding: 1 2;
-   /*  border: solid green; */
+    /* border: solid green; */
     height: 70%;
     margin: 0 5 0 5;
 }
@@ -111,9 +111,21 @@ Input:focus {
 
 }
 
+#back-to-home { 
+    color: $text;
+    width: 5vw;
+    padding: 0;
+    /* border: solid green;     */
+}
+
+#header {
+    padding: 1 2;
+    /* border: solid green; */
+}
+
 .horizonal {
     width: 100%;
-    /* border: solid orange; */
+    /* border: solid rgb(202, 8, 8); */
 }
 
 .vertical {
@@ -123,3 +135,11 @@ Input:focus {
     padding: 0;
 }
 
+#update-config {
+    background: $panel;
+    color: $text;
+    padding: 1 2;
+    /* border: solid red; */
+    height: 70%;
+    margin: 2 5 2 5;
+}
