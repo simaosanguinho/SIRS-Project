@@ -5,6 +5,11 @@ from textual.screen import Screen
 from textual.theme import Theme
 from textual.widgets import Input
 import requests
+import cryptolib
+import json
+
+
+#
 
 
 class HomeScreen(Screen):
@@ -101,24 +106,63 @@ class UpdateConfigScreen(Screen):
         )
         with Vertical():
             yield Static("Update Car Configuration", id="config-title")
-            yield Input(placeholder="Enter new configuration JSON", id="update-config")
+            self.config_input = Input(
+                placeholder="Enter new configuration JSON", id="update-config"
+            )
+            yield self.config_input
             yield Button("Update Config", id="send-update-config")
 
         yield Static("Output:", id="config-output")
         yield Footer()
 
+    def on_mount(self) -> None:
+        """Fetch the current configuration when the screen is mounted."""
+        app = self.app  # Get reference to the main app instance
+        try:
+            # Fetch current configuration from Flask API
+            response = requests.get(f"{app.flask_url}/get-config")
+            if response.status_code == 200:
+                current_config = (
+                    response.text
+                )  # Assuming the config is returned as a string
+                self.config_input.value = (
+                    current_config  # Set the input field to the current config
+                )
+            else:
+                self.display_output("Failed to fetch current configuration.")
+        except Exception as e:
+            self.display_output(f"Error: {e}")
+
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses on the UpdateConfigScreen."""
         button_id = event.button.id
-        app = self.app  # Get reference to the main app instance
+        app = self.app
 
         try:
             if button_id == "send-update-config":
-                new_config = self.query_one("#update-config", Input).value
+                # Get the value from the input field
+                new_config_str = self.query_one("#update-config", Input).value
+                new_config = json.loads(new_config_str)[0] if new_config_str else None
+
+                self.display_output("Updating configuration...")
+
                 if new_config:
+                    car_doc_unprotected = {
+                        "carID": app.car_id,
+                        "user": app.owner_id,
+                        "configuration": new_config,
+                        "firmware": "v1.0",
+                    }
+                    # TODO: change these hardcoded values
+                    car_doc_protected = cryptolib.protect_lib(
+                        car_doc_unprotected,
+                        "../../test/keys/chacha.key",
+                        ["configuration", "firmware"],
+                    )
+
                     response = requests.post(
                         f"{app.flask_url}/update-config",
-                        json=new_config,  # Ensure correct format
+                        json=car_doc_protected,
                     )
                     self.display_output(response.text)
                 else:
