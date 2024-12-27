@@ -3,6 +3,21 @@ import json
 import os
 
 import cryptolib
+from psycopg_pool import ConnectionPool
+
+# Database connection parameters
+DB_HOST = "localhost"
+DB_PORT = 7464
+DB_NAME = "motorist-car-db"
+DB_USER = "postgres"
+DB_PASSWORD = "password"
+
+# Initialize the connection pool
+pool = ConnectionPool(
+    min_size=1,
+    max_size=10,
+    conninfo=f"host={DB_HOST} port={DB_PORT} dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD}",
+)
 
 
 class Car:
@@ -64,20 +79,42 @@ def update_config():
     print("Data Received", data)
     print("Type", type(data))
 
-    # TODO: Add validation for the data
+    # TODO: Add validation for the data - check car id and user id
     # Change the hardcoded values
 
-    car.config = cryptolib.unprotect_lib(
-        data, "../../test/keys/chacha.key", ["configuration", "firmware"]
-    )
-    config_str = json.dumps(car.config)
+    try:
+        unprotected_data = cryptolib.unprotect_lib(
+            data, "../../test/keys/chacha.key", ["configuration", "firmware"]
+        )
+        car.config = unprotected_data["configuration"]
+
+    except Exception as e:
+        return f"Error: {e}"
+
+    config_json = json.dumps(car.config)
 
     car.op_count += 1
     if car.op_count >= 10:
         car.op_count = 0
         car.battery_level -= 5
 
-    return "Config updated" + config_str
+    with pool.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO updates (car_id, user_id, config, firmware)
+                VALUES (%(car_id)s, %(user_id)s, %(config)s, %(firmware)s);
+                """,
+                {
+                    "car_id": car.id,
+                    "user_id": car.user_id,
+                    "config": config_json,
+                    "firmware": "v1.0",
+                },
+            )
+        conn.commit()
+
+    return "Config updated" + config_json
 
 
 @app.route("/get-config")

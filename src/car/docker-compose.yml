@@ -1,0 +1,13 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:14-alpine
+    ports:
+      - 7464:5432
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=motorist-car-db
+    volumes:
+      - ./data:/docker-entrypoint-initdb.d

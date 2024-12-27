@@ -13,6 +13,9 @@ dependencies = [
     'importlib-metadata; python_version<"3.10"',
     'flask',
     'textual',
+    'psycopg',
+    'psycopg-binary',
+    'psycopg-pool',
 ]
 
 [tool.setuptools.packages.find]
