@@ -31,8 +31,9 @@ class Car:
         self.battery_level = 100
         self.op_count = 0
         with open(default_config, "r") as file:
-            self.config = json.load(file)
+            self.config = json.load(file)["configuration"]
             print("Default Config", self.config)
+            self.store_update(json.dumps(self.config))
 
     def setConfig(self, config_path):
         with open(config_path, "r") as file:
