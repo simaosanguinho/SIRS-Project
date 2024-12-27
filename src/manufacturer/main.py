@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import time
+from datetime import datetime
 import cryptolib
 from psycopg_pool import ConnectionPool
 # Database connection parameters
@@ -30,8 +31,9 @@ def root():
 
 @app.route("/get-firmware/<car_id>", methods=["GET"])
 def get_firmware(car_id):
-    current_time = int(time.time())
-    firmware = f"firmware-{car_id}-v{current_time}"
+    current_time = time.time()
+    formatted_time = datetime.fromtimestamp(current_time).strftime("%Y-%m-%d %H:%M:%S")
+    firmware = f"firmware-{car_id}-v{int(current_time)}"
     signature = cryptolib.sign_data("../../test/keys/user1.privkey",firmware)
     data = {
         "firmware": firmware,
@@ -48,7 +50,7 @@ def get_firmware(car_id):
                 {
                     "car_id": car_id,
                     "firmware": firmware,
-                    "timestamp": current_time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "timestamp": formatted_time,
                 },
             )
         conn.commit()
