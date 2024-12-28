@@ -44,17 +44,35 @@ def get_firmware(car_id):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO firmware_requests (car_id, firmware, timestamp)
-                VALUES (%(car_id)s, %(firmware)s, %(timestamp)s);
+                INSERT INTO firmware_requests (car_id, firmware, timestamp, signature)
+                VALUES (%(car_id)s, %(firmware)s, %(timestamp)s, %(signature)s);
                 """,
                 {
                     "car_id": car_id,
                     "firmware": firmware,
                     "timestamp": formatted_time,
+                    "signature": signature
                 },
             )
         conn.commit()
     
+    return jsonify(data)
+
+@app.route("/get-history/<car_id>", methods=["GET"])
+def get_history(car_id):
+    with pool.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT firmware, timestamp, signature
+                FROM firmware_requests
+                WHERE car_id = %(car_id)s;
+                """,
+                {
+                    "car_id": car_id,
+                },
+            )
+            data = cur.fetchall()
     return jsonify(data)
 
 if __name__ == "__main__":
