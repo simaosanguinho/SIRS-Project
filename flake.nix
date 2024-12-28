@@ -25,6 +25,7 @@
       url = "github:astro/microvm.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-topology.url = "github:oddlama/nix-topology";
   };
 
   outputs =
@@ -34,6 +35,7 @@
     in
 
     flake-parts.lib.mkFlake { inherit inputs; } {
+      debug = true;
       imports = [
         # To import a flake module
         # 1. Add foo to inputs
@@ -41,6 +43,7 @@
         # 3. Add here: foo.flakeModule
         inputs.git-hooks-nix.flakeModule
         inputs.treefmt-nix.flakeModule
+        inputs.nix-topology.flakeModule
       ];
       systems = [
         "x86_64-linux"
@@ -61,6 +64,9 @@
 
           # Equivalent to  inputs'.nixpkgs.legacyPackages.hello;
           # packages.default = pkgs.hello;
+          topology.modules = [
+            ./infra/topology.nix
+          ];
 
           devShells.default = pkgs.mkShell {
             packages = [
