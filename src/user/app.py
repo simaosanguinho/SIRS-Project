@@ -77,14 +77,20 @@ class HomeScreen(Screen):
 
             elif button_id == "get-config":
                 response = requests.get(f"{app.flask_url}/get-config")
-                self.display_output(response.text)
+                car_unprotected_doc = cryptolib.unprotect_lib(
+                    response.json(), "../../test/keys/chacha.key", ["configuration"]
+                )
+                self.display_output(
+                    "Current Configuration: "
+                    + json.dumps(car_unprotected_doc["configuration"])
+                )
 
             elif button_id == "go-config":
                 # Navigate to the UpdateConfigScreen
                 self.app.push_screen(UpdateConfigScreen())
 
         except Exception as e:
-            self.display_output(f"Error: {e}")
+            self.display_output(f"Error1: {e}")
 
     def display_output(self, message: str) -> None:
         """Display output to the user."""
@@ -113,8 +119,8 @@ class UpdateConfigScreen(Screen):
                 self.config_input = Input(
                     placeholder="Enter new configuration JSON", id="update-config"
                 )
-                yield self.config_input
-                yield Button("Update Config", id="send-update-config")
+                yield Container(self.config_input)
+                yield Button("Update Car Configuration", id="send-update-config")
 
         yield Static("Output:", id="output")
         yield Footer()
@@ -126,16 +132,18 @@ class UpdateConfigScreen(Screen):
             # Fetch current configuration from Flask API
             response = requests.get(f"{app.flask_url}/get-config")
             if response.status_code == 200:
-                current_config = (
-                    response.text
-                )  # Assuming the config is returned as a string
-                self.config_input.value = (
-                    current_config  # Set the input field to the current config
+                car_unprotected_doc = cryptolib.unprotect_lib(
+                    response.json(), "../../test/keys/chacha.key", ["configuration"]
                 )
+                # Assuming the config is returned as a dictionary
+                self.config_input.value = json.dumps(
+                    car_unprotected_doc["configuration"]
+                )
+
             else:
                 self.display_output("Failed to fetch current configuration.")
         except Exception as e:
-            self.display_output(f"Error: {e}")
+            self.display_output(f"Error2: {e}")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses on the UpdateConfigScreen."""
@@ -146,7 +154,7 @@ class UpdateConfigScreen(Screen):
             if button_id == "send-update-config":
                 # Get the value from the input field
                 new_config_str = self.query_one("#update-config", Input).value
-                new_config = json.loads(new_config_str)[0] if new_config_str else None
+                new_config = json.loads(new_config_str) if new_config_str else None
 
                 if new_config:
                     car_doc_unprotected = {
@@ -172,7 +180,7 @@ class UpdateConfigScreen(Screen):
             elif button_id == "back-to-home":
                 self.app.push_screen("home")
         except Exception as e:
-            self.display_output(f"Error: {e}")
+            self.display_output(f"Error3: {e}")
 
     def display_output(self, message: str) -> None:
         """Display output to the user on the config page."""

@@ -56,9 +56,15 @@ class Car:
         # no config found, use default
         else:
             with open(default_config, "r") as file:
-                self.config = json.load(file)["configuration"]
+                self.config = json.load(file)
                 print("Default Config", self.config)
-                self.store_update(json.dumps(self.config))
+                config_protected = cryptolib.protect_lib(
+                    self.config,
+                    "../../test/keys/chacha.key",
+                    ["configuration", "firmware"],
+                )
+                print("Default Config", config_protected)
+                self.store_update(json.dumps(config_protected["configuration"]))
 
     def setConfig(self, config_path):
         with open(config_path, "r") as file:
@@ -113,7 +119,14 @@ class Car:
                     )
                     config = cur.fetchone()
 
-            return json.dumps(config)
+            protected_car_config = {
+                "carId": self.id,
+                "user": self.user_id,
+                "configuration": config[0],
+                "firmware": "v1.0",
+            }
+            print("Protected Config", protected_car_config)
+            return json.dumps(protected_car_config)
 
         except Exception as e:
             raise (e)
@@ -150,27 +163,23 @@ def update_config():
     # Change the hardcoded values
 
     try:
-        unprotected_data = cryptolib.unprotect_lib(
+        """ unprotected_data = cryptolib.unprotect_lib(
             data, "../../test/keys/chacha.key", ["configuration", "firmware"]
         )
-        car.config = unprotected_data["configuration"]
+        car.config = unprotected_data["configuration"] """
+
+        # store the update protected
+        car.store_update(json.dumps(data["configuration"]))
 
     except Exception as e:
-        return f"Error: {e}"
-
-    config_json = json.dumps(car.config)
+        return f"Error2: {e}"
 
     car.op_count += 1
     if car.op_count >= 10:
         car.op_count = 0
         car.battery_level -= 5
 
-    try:
-        car.store_update(config_json)
-    except Exception as e:
-        return f"Error: {e}"
-
-    return "Config updated" + config_json
+    return "Config Updated Sucessfully"
 
 
 @app.route("/get-config")

@@ -139,7 +139,7 @@ Input:focus {
     background: $panel;
     color: $text;
     padding: 1 2;
-    /* border: solid red; */
+/*     border: solid red; */
     height: 70%;
     margin: 2 5 2 5;
 }
