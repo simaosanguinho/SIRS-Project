@@ -143,7 +143,9 @@ GitHub.sublime-settings
 
 
 # Project Specific #
-keys/*
+key_store/ca/*
+key_store/ca.crt
+key_store/*.motorist.lan
 /test/keys/*
 /test/output.json
 /test/output_protected.json
