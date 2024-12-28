@@ -76,6 +76,12 @@ def get_history(car_id):
     data = {
         "history": data
     }
+    for i in range(len(data["history"])):
+        data["history"][i] = {
+            "firmware": data["history"][i][0],
+            "timestamp": data["history"][i][1],
+            "signature": data["history"][i][2]
+        }
     return jsonify(data)
 
 if __name__ == "__main__":
