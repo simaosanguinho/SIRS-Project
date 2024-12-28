@@ -109,13 +109,13 @@ in
       interfaces.eth0.network = "car1-dmz";
     };
   };
-  owner = makeHost {
-    networking.hostName = "owner";
+  user = makeHost {
+    networking.hostName = "user";
     microvm.interfaces = [
       {
         type = "tap";
         # interface name on the host
-        id = "vm-owner";
+        id = "vm-user";
         mac = "02:00:00:00:00:03";
       }
     ];

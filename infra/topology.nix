@@ -17,7 +17,7 @@ in
   };
   nodes.internet = mkInternet {
     connections = [
-      (mkConnection "owner" "eth0")
+      (mkConnection "user" "eth0")
       (mkConnection "mechanic" "eth0")
     ];
   };
