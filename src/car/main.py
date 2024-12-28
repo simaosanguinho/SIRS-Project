@@ -38,7 +38,7 @@ class Car:
                     cur.execute(
                         """
                         SELECT config
-                        FROM updates
+                        FROM configurations
                         WHERE car_id = %(car_id)s
                         AND user_id = %(user_id)s
                         ORDER BY id DESC
@@ -61,7 +61,7 @@ class Car:
                 config_protected = cryptolib.protect_lib(
                     self.config,
                     "../../test/keys/chacha.key",
-                    ["configuration", "firmware"],
+                    ["configuration"],
                 )
                 print("Default Config", config_protected)
                 self.store_update(json.dumps(config_protected["configuration"]))
@@ -73,13 +73,12 @@ class Car:
     def is_user_owner(self, user):
         return user in self.config["user"]
 
-    # add method to build the car document (carid, user, config, firmware)
+    # add method to build the car document (carid, user, config)
     def build_car_document(self, config):
         return {
             "carID": self.id,
             "user": self.user_id,
             "config": config,
-            "firmware": "v1.0",
         }
 
     def store_update(self, config):
@@ -88,14 +87,13 @@ class Car:
                 with conn.cursor() as cur:
                     cur.execute(
                         """
-                        INSERT INTO updates (car_id, user_id, config, firmware)
-                        VALUES (%(car_id)s, %(user_id)s, %(config)s, %(firmware)s);
+                        INSERT INTO configurations (car_id, user_id, config)
+                        VALUES (%(car_id)s, %(user_id)s, %(config)s);
                         """,
                         {
                             "car_id": self.id,
                             "user_id": self.user_id,
                             "config": config,
-                            "firmware": "v1.0",
                         },
                     )
                 conn.commit()
@@ -109,7 +107,7 @@ class Car:
                     cur.execute(
                         """
                         SELECT config
-                        FROM updates
+                        FROM configurations
                         WHERE car_id = %(car_id)s
                         AND user_id = %(user_id)s
                         ORDER BY id DESC
@@ -123,7 +121,6 @@ class Car:
                 "carId": self.id,
                 "user": self.user_id,
                 "configuration": config[0],
-                "firmware": "v1.0",
             }
             print("Protected Config", protected_car_config)
             return json.dumps(protected_car_config)
@@ -164,7 +161,7 @@ def update_config():
 
     try:
         """ unprotected_data = cryptolib.unprotect_lib(
-            data, "../../test/keys/chacha.key", ["configuration", "firmware"]
+            data, "../../test/keys/chacha.key", ["configuration"]
         )
         car.config = unprotected_data["configuration"] """
 

@@ -161,13 +161,12 @@ class UpdateConfigScreen(Screen):
                         "carID": app.car_id,
                         "user": app.owner_id,
                         "configuration": new_config,
-                        "firmware": "v1.0",
                     }
                     # TODO: change these hardcoded values
                     car_doc_protected = cryptolib.protect_lib(
                         car_doc_unprotected,
                         "../../test/keys/chacha.key",
-                        ["configuration", "firmware"],
+                        ["configuration"],
                     )
 
                     response = requests.post(
