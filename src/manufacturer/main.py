@@ -73,6 +73,9 @@ def get_history(car_id):
                 },
             )
             data = cur.fetchall()
+    data = {
+        "history": data
+    }
     return jsonify(data)
 
 if __name__ == "__main__":
