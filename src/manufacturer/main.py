@@ -34,6 +34,7 @@ def get_firmware(car_id):
     current_time = time.time()
     formatted_time = datetime.fromtimestamp(current_time).strftime("%Y-%m-%d %H:%M:%S")
     firmware = f"firmware-{car_id}-v{int(current_time)}"
+    # todo: change the path to the actual private key
     signature = cryptolib.sign_data("../../test/keys/user1.privkey",firmware)
     data = {
         "firmware": firmware,
