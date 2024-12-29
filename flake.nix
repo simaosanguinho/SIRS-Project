@@ -84,6 +84,7 @@
               pkgs.openssl
               pkgs.step-ca
               pkgs.step-cli
+              pkgs.postgresql_16
 
               # Infra
               inputs'.microvm.packages.microvm
