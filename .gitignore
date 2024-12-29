@@ -152,4 +152,4 @@ key_store/*.motorist.lan
 basic.json
 .pre-commit-config.yaml
 /src/user/simple_app.py
-keys/*
+.pwd

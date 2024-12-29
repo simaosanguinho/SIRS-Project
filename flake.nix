@@ -29,12 +29,12 @@
   };
 
   outputs =
-    inputs@{ flake-parts, ... }:
+    inputs@{ self, ... }:
     let
       lib = inputs.nixpkgs.lib // inputs.flake-parts.lib;
     in
 
-    flake-parts.lib.mkFlake { inherit inputs; } {
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       debug = true;
       imports = [
         # To import a flake module
@@ -93,6 +93,7 @@
               # export DEBUG=1
               ${config.pre-commit.installationScript}
                export PYTHONPATH=$(pwd)/src:$PYTHONPATH
+               echo $PWD > .pwd
             '';
 
           };
@@ -132,7 +133,7 @@
 
       flake = {
         inherit lib;
-        nixosConfigurations = import ./infra/hosts.nix { inherit inputs; inherit lib; };
+        nixosConfigurations = import ./infra/hosts.nix { inherit inputs lib self; };
         # The usual flake attributes can be defined here, including system-
         # agnostic ones like nixosModule and system-enumerating ones, although
         # those are more easily expressed in perSystem.

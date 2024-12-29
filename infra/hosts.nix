@@ -1,4 +1,4 @@
-{ lib, inputs }:
+{ lib, inputs, self }:
 let
   # inherit
   #   (config.lib.topology)
@@ -9,6 +9,7 @@ let
   #   ;
   # config.lib.topology helper functions are not easy to access here;
   # just transcribe them here instead.
+  projectDir = lib.trim (builtins.readFile "${self}/.pwd");
   mkConnectionRev = node: interface: {
     inherit node interface;
     renderer.reverse = true;
@@ -19,26 +20,38 @@ let
   makeHost = extraModule:
 
     inputs.nixpkgs.lib.nixosSystem {
+      specialArgs = { rootDir = self; };
       modules = [
         # Include the microvm module
         inputs.microvm.nixosModules.microvm
         inputs.nix-topology.nixosModules.default
         extraModule
+        ./modules/ssh-server.nix
         # Add more modules here
         {
           nixpkgs.hostPlatform = "x86_64-linux";
           system.stateVersion = "24.11";
-          users.users.root.password = "";
+          # Note: in a real-world scenario, a secure administrative password would be set.
+          users.users.root.password = "sirs";
           microvm = {
-            shares = [{
-              # use proto = "virtiofs" for MicroVMs that are started by systemd
-              proto = "9p";
-              tag = "ro-store";
-              # a host's /nix/store will be picked up so that no
-              # squashfs/erofs will be built for it.
-              source = "/nix/store";
-              mountPoint = "/nix/.ro-store";
-            }];
+            shares = [
+              {
+                proto = "9p";
+                tag = "ro-store";
+                # a host's /nix/store will be picked up so that no
+                # squashfs/erofs will be built for it.
+                source = "/nix/store";
+                mountPoint = "/nix/.ro-store";
+              }
+              {
+                proto = "9p";
+                tag = "key_store";
+                # Source path can be absolute or relative
+                # to /var/lib/microvms/$hostName
+                source = "${projectDir}/key_store";
+                mountPoint = "/var/key_store";
+              }
+            ];
 
             hypervisor = "qemu";
           };
@@ -50,6 +63,9 @@ let
           # Network interfaces from systemd are detected automatically:
           systemd.network.enable = true;
           systemd.network.wait-online.enable = false;
+
+          # Ensure our VMs trust our CA.
+          security.pki.certificateFiles = [ "${self}/key_store/ca/ca.crt" ];
         }
       ];
     };
@@ -108,6 +124,10 @@ in
     topology.self = {
       interfaces.eth0.network = "car1-dmz";
     };
+    # services.postgresql = {
+    #     
+    #
+    # };
   };
   user = makeHost {
     networking.hostName = "user";
