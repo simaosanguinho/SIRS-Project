@@ -168,7 +168,7 @@ class Car:
         print("Maintenance Mode: ", self.maintnaince_mode)
         # check if maintenance mode is on
         if not self.maintnaince_mode:
-            return "Maintenance mode is off"
+            return "Firmware Update Failed: Maintenance Mode is Off"
 
         if not cryptolib.verify_signature(
             "../../test/keys/user1.pubkey", firmware, signature

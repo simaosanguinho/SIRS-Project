@@ -206,7 +206,7 @@ class CarApp(App):
         self.push_screen("home")
 
 
-# Define the theme as you had before
+# Define the theme
 arctic_theme = Theme(
     name="arctic",
     primary="#88C0D0",

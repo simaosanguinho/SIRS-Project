@@ -1,0 +1,145 @@
+/* General App Styling */
+Screen {
+    background: $background;
+    color: $foreground;
+    grid-size: 2;
+}
+
+/* Header and Footer Styling */
+Header {
+    background: $panel;
+    color: $primary;
+    text-style: bold;
+}
+
+
+Footer {
+    background: $panel;
+    color: $primary;
+}
+
+Label {
+    text-style: bold;
+    color: $primary;
+    text-align: center;
+}
+
+/* Title Styling */
+#title {
+    margin: 0;
+    text-align: center;
+    color: $accent;
+    text-style: b;
+    border: wide $surface;
+}
+
+/* Car Info Label Styling */
+#car-info {
+    /* border: solid yellow; */
+    width: 100%;
+    margin: 0 5 2 5;
+    text-align: center;
+    color: $secondary;
+    text-style: bold;
+}
+
+/* Section Titles (e.g., Maintenance Mode, Configuration, Battery Management) */
+Static {
+    text-style: bold;
+    color: $primary;
+}
+
+/* Button Styling */
+Button {
+    margin: 1;
+    width: 100%;
+    background: $panel;
+    color: $foreground;
+    border: tall $surface;
+}
+
+Button:hover {
+    background: $accent;
+    color: $background;
+}
+
+
+/* Input Field Styling */
+Input {
+    background: $surface;
+    color: $foreground;
+    border: tall $panel;
+}
+
+Input:focus {
+    border: wide $accent;
+    background: $panel;
+    color: $primary;
+}
+
+/* Output Section Styling */
+#output {
+    background: $surface;
+    color: $warning;
+    border: wide $panel;
+    padding: 1;
+}
+
+.controls {
+    background: $panel;
+    color: $text;
+    padding: 1 2;
+    /* border: solid green; */
+    height: 70%;
+    margin: 0 5 0 5;
+}
+.car-config-btn {
+    background: $panel;
+    color: $text;
+    padding: 1 2;
+    /* border: solid red; */
+    height: 70%;
+    margin: 0 5 0 5;
+}
+
+.navigation {
+    background: $panel;
+    color: $text;
+    padding: 1 2;
+    /* border: solid green; */
+    margin: 0 5 0 5;
+
+}
+
+#back-to-home { 
+    color: $text;
+    width: 5vw;
+    padding: 0;
+    /* border: solid green;     */
+}
+
+#header {
+    padding: 1 2;
+    /* border: solid green; */
+}
+
+.horizonal {
+    width: 100%;
+    /* border: solid rgb(202, 8, 8); */
+}
+
+.vertical {
+    height: 80%;
+    /* border: solid blue; */
+    margin: 0 5 0 5;
+    padding: 0;
+}
+
+#update-config {
+    background: $panel;
+    color: $text;
+    padding: 1 2;
+/*     border: solid red; */
+    height: 70%;
+    margin: 2 5 2 5;
+}
