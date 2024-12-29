@@ -2,8 +2,8 @@ from flask import Flask, request
 import json
 import os
 import cryptolib
-from psycopg_pool import ConnectionPool
 import requests
+from psycopg_pool import ConnectionPool
 
 app = Flask(__name__)
 
@@ -164,6 +164,12 @@ class Car:
             raise (e)
 
     def update_firmware(self, firmware, signature):
+        print("Updating Firmware")
+        print("Maintenance Mode: ", self.maintnaince_mode)
+        # check if maintenance mode is on
+        if not self.maintnaince_mode:
+            return "Maintenance mode is off"
+
         if not cryptolib.verify_signature(
             "../../test/keys/user1.pubkey", firmware, signature
         ):
@@ -273,7 +279,7 @@ def get_car_document():
 def update_firmware():
     try:
         # check maintenance mode
-        data = requests.get_json()
+        data = request.get_json()
         firmware = data["firmware"]
         signature = data["signature"]
         return car.update_firmware(firmware, signature)

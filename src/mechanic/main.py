@@ -44,7 +44,7 @@ def update_firmware():
     response = requests.post(f"{car_url}/update-firmware", json=response.json())
     print(response.text)
 
-    return "Firmware Updated Successfully"
+    return response.text
 
 
 if __name__ == "__main__":
