@@ -23,10 +23,9 @@ pushd "$ENTITY"
 openssl genrsa -out key.priv 2048
 
 # Generate entity's certificate signing request (CSR)
-#   Note the only difference between a user and a machine is the SAN attribute in the certificate.
 if [[ $ENTITY =~ '@' ]]; then
   # If it's an e-mail (contains an '@'), generate a CSR with the `email` attribute.
-  openssl req -new -key key.priv -out entity.csr -subj "/C=PT/O=MotorIST Lda./CN=$ENTITY" \
+  openssl req -new -key key.priv -out entity.csr -subj "/C=PT/O=MotorIST Lda." \
     -addext "subjectAltName = email:$ENTITY"
 else
   openssl req -new -key key.priv -out entity.csr -subj "/C=PT/O=MotorIST Lda./CN=$ENTITY" \
