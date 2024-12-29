@@ -1,7 +1,6 @@
 from flask import Flask, request
 import json
 import os
-
 import cryptolib
 from psycopg_pool import ConnectionPool
 
@@ -128,6 +127,33 @@ class Car:
         except Exception as e:
             raise (e)
 
+    def update_firmware(self, firmware, signature):
+        if not cryptolib.verify_signature(
+            "../../test/keys/user1.pubkey", firmware, signature
+        ):
+            return "Invalid signature"
+
+        try:
+            with pool.connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        INSERT INTO firmwares (car_id, firmware, signature, timestamp)
+                        VALUES (%(car_id)s, %(firmware)s, %(signature)s, NOW());
+                        """,
+                        {
+                            "car_id": self.id,
+                            "firmware": firmware,
+                            "signature": signature,
+                            "timestamp": "NOW()",
+                        },
+                    )
+                conn.commit()
+        except Exception as e:
+            raise (e)
+
+        return "Firmware Updated Successfully"
+
 
 @app.route("/")
 def root():
@@ -204,6 +230,18 @@ def charge_battery():
 @app.route("/debug/get-doc")
 def get_car_document():
     return json.dumps(car.build_car_document(car.config))
+
+
+# TODO: Add endpoint to update firmware
+@app.route("/update-firmware", methods=["POST"])
+def update_firmware():
+    try:
+        data = request.get_json()
+        firmware = data["firmware"]
+        signature = data["signature"]
+        return car.update_firmware(firmware, signature)
+    except Exception as e:
+        return f"Error: {e}"
 
 
 # Use environment variable to set config path - DEFAULT_CONFIG_PATH
