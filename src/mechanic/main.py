@@ -3,6 +3,10 @@ from textual.widgets import Footer, Button, Static, Label, Input
 from textual.containers import Vertical, Container
 from textual.screen import Screen
 from textual.theme import Theme
+
+import requests
+import cryptolib
+
 # from textual.widgets import Input
 
 
@@ -38,8 +42,19 @@ class HomeScreen(Screen):
         # app = self.app  # Get reference to the main app instance
 
         try:
-            if button_id == "maintenance-on":
-                print("Maintenance Mode On")
+            if button_id == "tests":
+                # TODO: Implement tests
+                self.display_output("Running tests ")
+
+            elif button_id == "update-firmware":
+                car_id = self.query_one("#car-id", Input).value
+
+                if not car_id:
+                    self.display_output("Please enter a car ID")
+                    return
+
+                response = update_firmware(car_id)
+                self.display_output(response)
 
         except Exception as e:
             self.display_output(f"Error1: {e}")
@@ -86,16 +101,43 @@ def update_firmware():
  """
 
 
+def update_firmware(car_id):
+    # fetch the firmware from manufacturer and send it to the car
+    response = requests.get(f"{manufacturer_url}/get-firmware/{1}")
+    if response.status_code != 200:
+        return "Failed to fetch firmware"
+    print(response.json())
+
+    firmware = response.json()["firmware"]
+    signature = response.json()["signature"]
+    # DOES THE MECHANIC NEED TO CHECK THE SIGNATURE?
+    if not cryptolib.verify_signature(
+        "../../test/keys/user1.pubkey", firmware, signature
+    ):
+        return "Invalid signature"
+
+    # send the firmware to the car
+    car_url = f"http://127.0.0.1:{5000 + int(car_id)}"
+    try:
+        response = requests.post(f"{car_url}/update-firmware", json=response.json())
+    except Exception:
+        return f"Failed to establish connection with car {car_id}"
+    print(response.text)
+    if response.status_code != 200:
+        return "Failed to update firmware"
+
+    return response.text
+
+
 class MechanicApp(App):
     SCREENS = {"home": HomeScreen}
     BINDINGS = [("h", "push_screen('home')", "Home Screen")]
 
     CSS_PATH = "styles.css"
 
-    def __init__(self, mechanic_id, car_url, manufacturer_url):
+    def __init__(self, mechanic_id, manufacturer_url):
         super().__init__()
         self.mechanic_id = mechanic_id
-        self.car_url = car_url
         self.manufacturer_url = manufacturer_url
 
     def on_mount(self) -> None:
@@ -133,6 +175,6 @@ if __name__ == "__main__":
 
     mechanic_id = sys.argv[1]
     # set different port for mechanic
-    car_url = f"http://127.0.0.1:{5000 + int(1)}"
+    # car_url = f"http://127.0.0.1:{5000 + int(1)}"
     manufacturer_url = f"http://127.0.0.1:{5200 + int(1)}"
-    MechanicApp(mechanic_id, car_url, manufacturer_url).run()
+    MechanicApp(mechanic_id, manufacturer_url).run()
