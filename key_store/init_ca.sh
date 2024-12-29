@@ -14,9 +14,15 @@ openssl ecparam -name prime256v1 -genkey -out key.priv
 openssl ec -in "key.priv" -pubout -out "key.pub"
 
 # Generate a CA.
-openssl req -x509 -days 3650 -key "key.priv" -out "ca.crt" -addext "basicConstraints=CA:TRUE" -subj "/C=PT/O=MotorIST Lda./CN=MotorIST Root CA"
+openssl req -x509 -days 3650 -key "key.priv" -out "ca.crt" \
+  -addext "basicConstraints=critical,CA:TRUE" \
+  -addext "authorityInfoAccess = caIssuers;URI:https://manufacturer.motorist.lan" \
+  -addext "keyUsage = critical, keyCertSign" \
+  -subj "/C=PT/O=MotorIST Lda./CN=MotorIST Root CA"
+
+#TODO: add this note to report and remove these lines
 # Copy it to key store's root, simply to acknowledge every entity knows and can know this file.
-cp ./ca.crt ../
+# cp ./ca.crt ../
 
 # Verify the public key in the certificate is equal to the key in "key.pub":
 echo "Public key in CA's certificate:"
