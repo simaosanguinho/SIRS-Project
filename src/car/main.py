@@ -3,6 +3,7 @@ import json
 import os
 import cryptolib
 from psycopg_pool import ConnectionPool
+import requests
 
 app = Flask(__name__)
 
@@ -25,6 +26,7 @@ class Car:
     def __init__(self, default_config, car_id, owner_id):
         self.maintnaince_mode = False
         self.config = {}
+        self.firmware = {}
         self.id = car_id
         self.user_id = owner_id
         self.battery_level = 100
@@ -64,6 +66,40 @@ class Car:
                 )
                 print("Default Config", config_protected)
                 self.store_update(json.dumps(config_protected["configuration"]))
+
+        # do the same with the firmware
+        firmware = None
+        try:
+            with pool.connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        SELECT firmware
+                        FROM firmwares
+                        WHERE car_id = %(car_id)s
+                        ORDER BY id DESC
+                        LIMIT 1;
+                        """,
+                        {"car_id": self.id},
+                    )
+                    firmware = cur.fetchone()
+        except Exception as e:
+            raise (e)
+        # existent firmware was found
+        if firmware:
+            self.firmware = firmware[0]
+            print("Firmware from DB", self.firmware)
+
+        else:
+            # ask for a new firmware from the manufacturer
+            response = requests.get(f"{manufacturer_url}/get-firmware/{1}")
+            if response.status_code != 200:
+                print("Failed to fetch firmware")
+            print(response.json())
+            firmware = response.json()["firmware"]
+            signature = response.json()["signature"]
+            self.update_firmware(firmware, signature)
+            print("Firmware from Manufacturer", firmware)
 
     def setConfig(self, config_path):
         with open(config_path, "r") as file:
@@ -198,7 +234,7 @@ def update_config():
         return f"Error2: {e}"
 
     car.op_count += 1
-    if car.op_count >= 10:
+    if car.op_count >= 10 and car.battery_level > 0:
         car.op_count = 0
         car.battery_level -= 5
 
@@ -236,7 +272,8 @@ def get_car_document():
 @app.route("/update-firmware", methods=["POST"])
 def update_firmware():
     try:
-        data = request.get_json()
+        # check maintenance mode
+        data = requests.get_json()
         firmware = data["firmware"]
         signature = data["signature"]
         return car.update_firmware(firmware, signature)
@@ -252,6 +289,8 @@ if not default_config_path:
 
 if __name__ == "__main__":
     import sys
+
+    manufacturer_url = f"http://127.0.0.1:{5200 + int(1)}"
 
     car = Car(default_config_path, sys.argv[1], sys.argv[2])
     # set different port for car based on id
