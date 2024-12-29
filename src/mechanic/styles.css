@@ -34,7 +34,7 @@ Label {
 }
 
 /* Car Info Label Styling */
-#car-info {
+#mechanic-info {
     /* border: solid yellow; */
     width: 100%;
     margin: 0 5 2 5;
@@ -90,7 +90,7 @@ Input:focus {
     color: $text;
     padding: 1 2;
     /* border: solid green; */
-    height: 70%;
+    height: 30%;
     margin: 0 5 0 5;
 }
 .car-config-btn {

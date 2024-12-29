@@ -1,16 +1,31 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Footer, Button, Static, Label
+from textual.widgets import Footer, Button, Static, Label, Input
+from textual.containers import Vertical, Container
 from textual.screen import Screen
 from textual.theme import Theme
 # from textual.widgets import Input
 
 
 class HomeScreen(Screen):
-    """Home screen that displays basic car management options."""
+    """Home screen that displays basic mechanic actions."""
 
     def compose(self) -> ComposeResult:
         yield Static("Car Management System", id="title")
-        yield Label(f"Mechanic ID: {self.app.mechanic_id}", id="car-info")
+        yield Label(f"Mechanic ID: {self.app.mechanic_id}", id="mechanic-info")
+
+        # add two buttons to enable and disable maintenance mode
+        with Vertical(classes="vertical"):
+            yield Container(
+                Static("Update Firmware", classes="section-label"),
+                Input(placeholder="Insert Car ID", id="car-id"),
+                Button("Update Car Firmware", id="update-firmware"),
+                classes="controls",
+            )
+            yield Container(
+                Static("Testing:", classes="section-label"),
+                Button("Perform Tests", id="tests"),
+                classes="controls",
+            )
 
         # Navigation to Config View
         # Output Display
