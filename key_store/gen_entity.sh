@@ -6,7 +6,11 @@
 ENTITY="$1"
 
 if [ -z "$ENTITY" ]; then
-  echo "Usage: $0 <entity's email or dns name>"
+  echo "Usage (servers): $0 <hostname>"
+  echo "Usage (clients): $0 <username@role.motorist.lan>"
+  echo "Usage examples:"
+  echo "$0 car1-db"
+  echo "$0 johndoe@mechanic.motorist.lan"
   exit 1
 fi
 
@@ -25,11 +29,11 @@ openssl genrsa -out key.priv 2048
 # Generate entity's certificate signing request (CSR)
 if [[ $ENTITY =~ '@' ]]; then
   # If it's an e-mail (contains an '@'), generate a CSR with the `email` attribute.
-  openssl req -new -key key.priv -out entity.csr -subj "/C=PT/O=MotorIST Lda." \
+  openssl req -new -key key.priv -out entity.csr -subj "/C=PT/O=MotorIST Lda./CN=${ENTITY}" \
     -addext "subjectAltName = email:$ENTITY"
 else
-  openssl req -new -key key.priv -out entity.csr -subj "/C=PT/O=MotorIST Lda./CN=$ENTITY" \
-    -addext "subjectAltName = DNS:$ENTITY"
+  openssl req -new -key key.priv -out entity.csr -subj "/C=PT/O=MotorIST Lda./CN=${ENTITY}" \
+    -addext "subjectAltName = DNS:$ENTITY.motorist.lan"
 fi
 
 # Sign the CSR with the CA's key:
