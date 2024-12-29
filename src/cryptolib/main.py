@@ -6,13 +6,12 @@ import base64
 import secrets
 from rich import pretty
 from rich import print
-import datetime
+from datetime import datetime
 
 # TODO: make this dynamic by taking AEAD algorithm dynamically
 # from cryptography.hazmat.primitives.ciphers import aead
 # aead.__all__['AESGCM']
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
-from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import (
@@ -21,10 +20,10 @@ from cryptography.hazmat.primitives.serialization import (
 )
 import hashlib
 from cryptography.hazmat.backends import default_backend
-from cryptography.x509.oid import NameOID
-from cryptography.x509 import load_pem_x509_certificate
-from cryptography.x509.verification import PolicyBuilder, Store
+from cryptography.x509 import load_pem_x509_certificate, Certificate
+from cryptography.x509.verification import PolicyBuilder, Store, VerificationError
 from cryptography.exceptions import InvalidTag
+
 
 @click.group()
 def cli():
@@ -232,6 +231,7 @@ def generate_key(output_file: str):
         print(f"key_encoded={key_encoded}")
         f.write(key_encoded)
 
+
 def load_private_key(file_path):
     """Loads an RSA private key from a file."""
     with open(file_path, "rb") as key_file:
@@ -301,25 +301,42 @@ def verify_signature(file_path, data, signature):
 class PKI:
     """
     Manages (MotorIST) Public Key Infrastructure.
+    References:
+      - https://cryptography.io/en/43.0.1/x509/verification/
+      - https://cryptography.io/en/43.0.1/x509/reference/#general-name-classes
     """
 
     def __init__(self, root_cacert_path):
-        with open(root_cacert_path, "rb") as f:
-            cacert_bytes = f.read()
-        self.root_ca = PKI.load_certificate(cacert_bytes)
-        store = Store(self.root_ca)
-        self.__policy_builder = PolicyBuilder().store(store)
+        self.root_ca = PKI.load_certificate(root_cacert_path)
+        self.store = Store([self.root_ca])
 
-    def verify_cert(self, cert_path):
-        cert = load_pem_x509_certificate(cert_path)
+    # Not yet sure if needed.
+    # def verify_server_cert(self, cert: Certificate, dns_name: str):
+    #     builder = PolicyBuilder().store(self.store)
+    #     builder = builder.time(datetime.now())
+    #     verifier = builder.build_server_verifier(DNSName(dns_name))
+    #     return verifier.verify(cert, [])
 
-        
+    # Verifies if a client certificate is valid.
+    def verify_client_cert(self, cert: Certificate) -> (bool, str):
+        builder = PolicyBuilder().store(self.store)
+        builder = builder.time(datetime.now())
+        verifier = builder.build_client_verifier()
+        try:
+            verified_client = verifier.verify(cert, [])
+            # Assume a client certificate only contains one subject a.k.a email identifier.
+            return (True, verified_client.subjects[0].value)
+
+        except VerificationError:
+            # Client's certificate is not valid.
+            return (False, None)
 
     @staticmethod
     def load_certificate(cert_path):
         with open(cert_path, "rb") as f:
             cert_bytes = f.read()
         return load_pem_x509_certificate(cert_bytes)
+
 
 if __name__ == "__main__":
     if not sys.flags.interactive:
