@@ -1,4 +1,6 @@
 from flask import Flask, request, jsonify
+import os
+import sys
 import time
 from datetime import datetime
 import cryptolib
@@ -9,6 +11,11 @@ DB_PORT = 7654
 DB_NAME = "motorist-manufacturer-db"
 DB_USER = "postgres"
 DB_PASSWORD = "password"
+
+PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
+KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
+MANUF_PRIV_KEY = f"{KEY_STORE}/manufacturer/key.priv"
+
 # Initialize the connection pool
 pool = ConnectionPool(
     min_size=1,
@@ -34,8 +41,7 @@ def get_firmware(car_id):
     current_time = time.time()
     formatted_time = datetime.fromtimestamp(current_time).strftime("%Y-%m-%d %H:%M:%S")
     firmware = f"firmware-{car_id}-v{int(current_time)}"
-    # todo: change the path to the actual private key
-    signature = cryptolib.sign_data("../../test/keys/user1.privkey",firmware)
+    signature = cryptolib.sign_data(MANUF_PRIV_KEY ,firmware)
     data = {
         "firmware": firmware,
         "signature": signature
@@ -86,9 +92,7 @@ def get_history(car_id):
     return jsonify(data)
 
 if __name__ == "__main__":
-    import sys
     mechanic = Manufacturer(sys.argv[1])
     # set different port for manufacturer
     port = 5200 + int(sys.argv[1])
     app.run(port=port)
-    app.run()

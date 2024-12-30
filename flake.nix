@@ -80,6 +80,7 @@
                 rich # For development/pretty print
                 flask
                 psycopg-pool
+                requests
               ]))
               pkgs.openssl
               pkgs.step-ca
@@ -94,6 +95,7 @@
               # export DEBUG=1
               ${config.pre-commit.installationScript}
                export PYTHONPATH=$(pwd)/src:$PYTHONPATH
+               export PROJECT_ROOT=$PWD
                echo $PWD > .pwd
             '';
 
