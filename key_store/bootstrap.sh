@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-# Delete EVERYTHING uncommitted in the key_store folder.
-git restore --source=HEAD --staged --worktree -- ./
+# Delete EVERYTHING in the key_store folder that is included in gitignore.
+git clean -d -f -X ./
 
 # Init CA
 ./init_ca.sh
