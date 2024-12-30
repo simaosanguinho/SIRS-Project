@@ -228,10 +228,10 @@ def update_config():
     # Change the hardcoded values
 
     try:
-        """ unprotected_data = cryptolib.unprotect_lib(
+        """unprotected_data = cryptolib.unprotect_lib(
             data, "../../test/keys/chacha.key", ["configuration"]
         )
-        car.config = unprotected_data["configuration"] """
+        car.config = unprotected_data["configuration"]"""
 
         # store the update protected
         car.store_update(json.dumps(data["configuration"]))

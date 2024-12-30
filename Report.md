@@ -53,11 +53,13 @@ The ChaCha20-Poly1305 algorithm takes as input a 256-bit key and a 96-bit nonce 
 
 ##### 2.2.1.2. Integrity
 
-Acho que isto tem a ver com a parte dos CAs? "\[SR2: Integrity 1\] The car can only accept configurations sent by the car owner; \[SR3: Integrity 2\] The car firmware updates can only be sent by the car manufacturer." @girao
+Acho que isto tem a ver com a parte dos CAs? "\[SR2: Integrity 1\] The car can only accept configurations sent by the car owner; \[SR3: Integrity 2\] The car firmware updates can only be sent by the car manufacturer." @girao esta parte ns mm qual a justifacao mais correta a dar, mas aposto em CAs.
 
 ##### 2.2.1.3. Authenticity
 
 To ensure authenticity and non-repudiation, which means that the person who appears to have performed an action is indeed the one who did it, we use asymmetric cryptography. For example, the case of the car manufacturer, the firmware is signed using the manufacturer's private key. This signature is then verified by the car using the manufacturer's public key.
+
+@girao agora nao tenho a certeza se a justifacação aqui deva ser asymetric keys ou se falo em CAs.
 
 #### 2.2.2. Document Structure
 
@@ -122,27 +124,65 @@ The main functions of the library are:
 
 The `protect`, `unprotect` and `check` functions are the available to be used as a terminal command. The usage of these commands can be found in the [`README.md`](./src/cryptolib/README.md) file.
 
+@girao nao falo aqui sobre o PKI, e com o ultimo commit que fizeste hj dia 30 nao sei se o sign_data e verify_data ainda existem da mesma forma que descrevo em cima. Pff checka e completa com os metodos que achares necessarios.
+
 ## 2.3 Infrastructure
 
-NixOS, firewalls, certs, cas, firewalls, etc.
+NixOS, firewalls, certs, cas, firewalls, Secure Server Communication (TLS), etc. @girao
 
-## 2.4 Secure Server Communication
+## 2.4 Threat Model
 
-TLS stuff here
+One of the assumptions we made in our threat model is that the attacker has the capability to intercept network traffic and send malicious requests, but we assume that the attacker cannot compromise the actual machines.
 
-## 2.5 Threat Model
+We also assume that the keys used in the cryptographic operations are secure and were securely distributed. @girao aqui elas sao distribuidas ou é CA stuff?
 
-tudo o que pode dar errado e.g interceptions
+If private keys are compromised, the attacker can impersonate the entity that owns the key.
 
-## 2.5 Security Challenges Response
+If the certificate authority (CA) is compromised, the attacker can issue certificates for any entity, which can be used to impersonate that entity.
 
-aqui explicar como cada SR foi solucionado
+## 2.5 Protection needs and Security Challenges Response
+
+In this section, we will explain how we addressed the specific protection needs and security challenges that were defined in the beginning of the project.
+
+### 2.5.1. \[SR1: Confidentiality\] The car configurations can only be seen by the car owner.
+
+To ensure that the car configurations can only be seen by the car owner, we used the `cryptolib` library to protect the documents that are sent to the car. This library encrypts the document using the ChaCha20Poly1305 algorithm, which will use the car owner's private key to encrypt the document. This way, only the car owner can decrypt the document and see the configurations.
+
+### 2.5.2. \[SR2: Integrity 1\] The car can only accept configurations sent by the car owner.
+
+ainda nao fizemos isto mas tenho ideias q é CA stuff
+
+### 2.5.3. \[SR3: Integrity 2\] The car firmware updates can only be sent by the car manufacturer.
+
+ainda nao fizemos isto mas tenho ideias q é CA stuff
+
+### 2.5.4. \[SR4: Authentication\] The car manufacture cannot deny having sent firmware updates.
+
+In order to ensure that the car manufacturer cannot deny having sent firmware updates, we used the `cryptolib` library to sign the firmware that is sent to the car. This library signs the firmware using the car manufacturer's private key, which will be verified by the car using the car manufacturer's public key. This way, the car can verify that the document was indeed sent by the car manufacturer.
+
+### 2.5.5. \[SRB1: data privacy\] The mechanic cannot see the user configurations, even when he has the car key.
+
+ainda nao fizemos isto e sinceramente ainda nao sei como isto vai ser feito
+
+### 2.5.6. \[SRB2: authorization\] The mechanic (when authenticated) can change any parameter of the car, for testing purposes.
+
+ainda nao fizemos isto mas tem a ver com o modo de manutenção que que e ativado pelo car owner quando ele vai ao mecânico
+
+### 2.5.7. \[SRB3: data authenticity\] The user can verify that the mechanic performed all the tests to the car.
+
+Ainda nao fizemos mas probably vamos fazer como fazemos para o manufacturer ser verificavel de ter enviado o firmware
 
 ## 3. Conclusion
 
 With the implementation of the MotorIST project, we were able to achieve the protection goals and security challenges that were defined in the beginning of the project. The custom cryptographic library that we implemented, `cryptolib`, was a key part of the project, as it allowed us to protect, verify and unprotect the documents that are sent to the car. This library was implemented using the Python programming language, which allowed us to easily integrate it with the rest of the project.
 
-All the security requirements were addressed in the project, and the communication between the user application and the car is secure.
+\[falar sobre o que pode ser melhorado\] @girao podes dar sugestões aqui?
+
+There are still some features and improvements that could be made to the project. For example, we could implement a web interface for the car owner to manage the car configurations, which would make it easier for the car owner to interact with the car by having a better UI/UX.
+
+Another improvement that could be made is to implement support for multiple entities, such as multiple car owners, mechanics and car manufacturers. This would allow the project to be more flexible and to better mimic a real-world scenario.
+
+\[falar sobre o que pode ser melhorado\]
 
 This project was a great opportunity to learn more about security and cryptography, and we are very happy with the results that we achieved. The infrastructure that we implemented was also a great learning experience, as we had to deal with firewalls, certificates, CAs and other security mechanisms for the first tine.
 
