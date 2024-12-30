@@ -9,7 +9,7 @@ let
   #   ;
   # config.lib.topology helper functions are not easy to access here;
   # just transcribe them here instead.
-  projectDir = lib.trim (builtins.readFile "${self}/.pwd");
+  projectRoot = lib.trim (builtins.readFile "${self}/.pwd");
   mkConnectionRev = node: interface: {
     inherit node interface;
     renderer.reverse = true;
@@ -48,7 +48,7 @@ let
                 tag = "key_store";
                 # Source path can be absolute or relative
                 # to /var/lib/microvms/$hostName
-                source = "${projectDir}/key_store";
+                source = "${projectRoot}/key_store";
                 mountPoint = "/var/key_store";
               }
             ];
