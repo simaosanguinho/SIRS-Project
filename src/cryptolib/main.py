@@ -275,29 +275,6 @@ def sign_data(file_path, data):
     return signature.decode("utf-8")
 
 
-def verify_signature(file_path, data, signature):
-    """Verifies the signature of the given data using the public key."""
-    data_hash = sha256_hash(data)
-    # Decode the signature
-    signature = base64.b64decode(signature)
-    # Load the public key
-    public_key = load_public_key(file_path)
-
-    try:
-        public_key.verify(
-            signature,
-            data_hash.encode("utf-8"),
-            padding.PSS(
-                mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH
-            ),
-            hashes.SHA256(),
-        )
-        return True
-    except Exception as e:
-        print("Verification failed:", e)
-        return False
-
-
 class PKI:
     """
     Manages (MotorIST) Public Key Infrastructure.
@@ -318,7 +295,7 @@ class PKI:
     #     return verifier.verify(cert, [])
 
     # Verifies if a client certificate is valid.
-    def verify_client_cert(self, cert: Certificate) -> (bool, str):
+    def verify_client_cert(self, cert: Certificate) -> tuple[bool, str]:
         builder = PolicyBuilder().store(self.store)
         builder = builder.time(datetime.now())
         verifier = builder.build_client_verifier()
@@ -330,6 +307,28 @@ class PKI:
         except VerificationError:
             # Client's certificate is not valid.
             return (False, None)
+
+    @staticmethod
+    def verify_signature(cert: Certificate, data, signature) -> bool:
+        """Verifies the signature of the given data using a certificate's public key."""
+        data_hash = sha256_hash(data)
+        signature = base64.b64decode(signature)
+        public_key = cert.public_key()
+
+        try:
+            public_key.verify(
+                signature,
+                data_hash.encode("utf-8"),
+                padding.PSS(
+                    mgf=padding.MGF1(hashes.SHA256()),
+                    salt_length=padding.PSS.MAX_LENGTH,
+                ),
+                hashes.SHA256(),
+            )
+            return True
+        except Exception as e:
+            print("Signature verification failed with exception: ", e)
+            return False
 
     @staticmethod
     def load_certificate(cert_path):
