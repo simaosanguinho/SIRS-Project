@@ -20,7 +20,9 @@ from cryptography.hazmat.primitives.serialization import (
 )
 import hashlib
 from cryptography.hazmat.backends import default_backend
+from cryptography import x509
 from cryptography.x509 import load_pem_x509_certificate, Certificate
+from cryptography.x509.oid import ExtensionOID
 from cryptography.x509.verification import PolicyBuilder, Store, VerificationError
 from cryptography.exceptions import InvalidTag
 
@@ -307,6 +309,36 @@ class PKI:
         except VerificationError:
             # Client's certificate is not valid.
             return (False, None)
+
+    @staticmethod
+    def __get_subject_names(cert: Certificate):
+        return cert.extensions.get_extension_for_oid(
+            ExtensionOID.SUBJECT_ALTERNATIVE_NAME
+        ).value
+
+    @staticmethod
+    def get_subject_email(cert: Certificate) -> list:
+        # Assume only one e-mail per subject in our context.
+        return PKI.__get_subject_names(cert).get_values_for_type(x509.RFC822Name)[0]
+
+    @staticmethod
+    def get_san_custom_oid(cert: Certificate, oid: str):
+        """
+        Fetches data from a certificate, identified by a custom (arbitrary) extension OID.
+
+        https://docs.openssl.org/3.4/man5/x509v3_config/#arbitrary-extensions
+        """
+        # Our custom objects are stored in the certificate, according to RFC5280.
+        # They are stored as `Subject Alternative Names` of the `otherName` type.
+        other_names = PKI.get_subject_names(cert).get_values_for_type(x509.OtherName)
+
+        # Since our values of otherName contain data in a custom format (i.e. have a custom OID),
+        # OpenSSL will not know how to correctly parse its data when adding it to a certificate.
+        # It's up to the implementors of the custom OID to correctly handle the data.
+        for other_name in other_names:
+            if other_name.type_id.dotted_string == oid:
+                return other_name.value[2:].decode("utf-8")
+        return None
 
     @staticmethod
     def verify_signature(cert: Certificate, data, signature) -> bool:

@@ -7,10 +7,11 @@ ENTITY="$1"
 
 if [ -z "$ENTITY" ]; then
   echo "Usage (servers): $0 <hostname>"
-  echo "Usage (clients): $0 <username@role.motorist.lan>"
+  echo "Usage (clients): $0 <username> <entity's role> [car the user is owner of]"
   echo "Usage examples:"
   echo "$0 car1-db"
-  echo "$0 johndoe@mechanic.motorist.lan"
+  echo "$0 johndoe@mechanic.motorist.lan mechanic"
+  echo "$0 mike_the_car_owner@user.motorist.lan user car1"
   exit 1
 fi
 
@@ -27,10 +28,25 @@ pushd "$ENTITY"
 openssl genrsa -out key.priv 2048
 
 # Generate entity's certificate signing request (CSR)
+# If it's an e-mail (first argument contains an '@'), generate a CSR with the `email` attribute:
 if [[ $ENTITY =~ '@' ]]; then
-  # If it's an e-mail (contains an '@'), generate a CSR with the `email` attribute.
+  EXTRA_ALT_NAME1=""
+  EXTRA_ALT_NAME2=""
+  if [[ $# -ge 2 ]]; then
+    MOTORIST_ROLE="$2"
+    # Adds an additional extension to the certificate, binding the entity
+    # that owns this certificate's public key to a role in MotorIST.
+    EXTRA_ALT_NAME1=", otherName:1.2.3.4.1;UTF8:motorist_role--$MOTORIST_ROLE"
+  fi
+  if [[ $# -eq 3 ]]; then
+    MOTORIST_CAROWNER="$3"
+    # Adds an additional extension to the certificate, binding the entity
+    # that owns this certificate's public key as the owner of a MotorIST car.
+    EXTRA_ALT_NAME2=", otherName:1.2.3.4.2;UTF8:motorist_carowner--$MOTORIST_CAROWNER"
+  fi
   openssl req -new -key key.priv -out entity.csr -subj "/C=PT/O=MotorIST Lda./CN=${ENTITY}" \
-    -addext "subjectAltName = email:$ENTITY"
+    -addext "subjectAltName = email:${ENTITY}${EXTRA_ALT_NAME1}${EXTRA_ALT_NAME2}"
+  # Otherwise, assume the entity is a server:
 else
   openssl req -new -key key.priv -out entity.csr -subj "/C=PT/O=MotorIST Lda./CN=${ENTITY}" \
     -addext "subjectAltName = DNS:$ENTITY.motorist.lan"
