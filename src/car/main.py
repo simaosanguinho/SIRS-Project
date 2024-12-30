@@ -9,12 +9,10 @@ from psycopg_pool import ConnectionPool
 app = Flask(__name__)
 
 # Database connection parameters
-DB_HOST = "localhost"
-DB_PORT = 7464
-DB_NAME = "motorist-car-db"
-DB_USER = "postgres"
-DB_PASSWORD = "password"
-
+PG_CONNSTRING = os.getenv(
+    "PG_CONNSTRING",
+    "host=localhost port=7464 dbname=motorist-car-db user=postgres password=password",
+)
 PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
 KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
 MANUFACTURER_CERT_PATH = f"{KEY_STORE}/manufacturer.crt"
@@ -24,7 +22,7 @@ MANUFACTURER_CERT = PKI.load_certificate(MANUFACTURER_CERT_PATH)
 pool = ConnectionPool(
     min_size=1,
     max_size=10,
-    conninfo=f"host={DB_HOST} port={DB_PORT} dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD}",
+    conninfo=PG_CONNSTRING,
 )
 
 

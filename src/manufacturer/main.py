@@ -7,12 +7,10 @@ import cryptolib
 from psycopg_pool import ConnectionPool
 
 # Database connection parameters
-DB_HOST = "localhost"
-DB_PORT = 7654
-DB_NAME = "motorist-manufacturer-db"
-DB_USER = "postgres"
-DB_PASSWORD = "password"
-
+PG_CONNSTRING = os.getenv(
+    "PG_CONNSTRING",
+    "host=localhost port=7654 dbname=motorist-manufacturer-db user=postgres password=password",
+)
 PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
 KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
 MANUF_PRIV_KEY = f"{KEY_STORE}/manufacturer/key.priv"
@@ -21,7 +19,7 @@ MANUF_PRIV_KEY = f"{KEY_STORE}/manufacturer/key.priv"
 pool = ConnectionPool(
     min_size=1,
     max_size=10,
-    conninfo=f"host={DB_HOST} port={DB_PORT} dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD}",
+    conninfo=PG_CONNSTRING,
 )
 
 
