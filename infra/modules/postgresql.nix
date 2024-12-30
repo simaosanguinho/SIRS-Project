@@ -12,8 +12,10 @@ in
     }];
     enableTCPIP = true;
     settings = {
+      log_connections = true; # For debugging
       port = 5432;
       ssl = true; # might be "on"
+      ssl_ca_file = "/var/key_store/ca.crt";
       ssl_cert_file = "/var/lib/postgresql/keys/entity.crt";
       ssl_key_file = "/var/lib/postgresql/keys/key.priv";
       listen_addresses = lib.mkForce "0.0.0.0";
@@ -63,5 +65,6 @@ in
   # Allow postgresql to read keys directory
   systemd.services.postgresql.serviceConfig.ReadWritePaths = [
     "/var/lib/postgresql"
+    "/var/key_store"
   ];
 }
