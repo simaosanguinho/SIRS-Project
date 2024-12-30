@@ -1,10 +1,11 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify
 import os
 import sys
 import time
 from datetime import datetime
 import cryptolib
 from psycopg_pool import ConnectionPool
+
 # Database connection parameters
 DB_HOST = "localhost"
 DB_PORT = 7654
@@ -23,6 +24,7 @@ pool = ConnectionPool(
     conninfo=f"host={DB_HOST} port={DB_PORT} dbname={DB_NAME} user={DB_USER} password={DB_PASSWORD}",
 )
 
+
 class Manufacturer:
     def __init__(self, id):
         self.id = id
@@ -33,7 +35,9 @@ app = Flask(__name__)
 
 @app.route("/")
 def root():
-    return "<h3>Welcome to the Manufacturer App!  </h3> Manufacturer Id: " + str(mechanic.id)
+    return "<h3>Welcome to the Manufacturer App!  </h3> Manufacturer Id: " + str(
+        mechanic.id
+    )
 
 
 @app.route("/get-firmware/<car_id>", methods=["GET"])
@@ -41,12 +45,9 @@ def get_firmware(car_id):
     current_time = time.time()
     formatted_time = datetime.fromtimestamp(current_time).strftime("%Y-%m-%d %H:%M:%S")
     firmware = f"firmware-{car_id}-v{int(current_time)}"
-    signature = cryptolib.sign_data(MANUF_PRIV_KEY ,firmware)
-    data = {
-        "firmware": firmware,
-        "signature": signature
-    }
-    
+    signature = cryptolib.sign_data(MANUF_PRIV_KEY, firmware)
+    data = {"firmware": firmware, "signature": signature}
+
     with pool.connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -58,12 +59,13 @@ def get_firmware(car_id):
                     "car_id": car_id,
                     "firmware": firmware,
                     "timestamp": formatted_time,
-                    "signature": signature
+                    "signature": signature,
                 },
             )
         conn.commit()
-    
+
     return jsonify(data)
+
 
 @app.route("/get-history/<car_id>", methods=["GET"])
 def get_history(car_id):
@@ -80,16 +82,15 @@ def get_history(car_id):
                 },
             )
             data = cur.fetchall()
-    data = {
-        "history": data
-    }
+    data = {"history": data}
     for i in range(len(data["history"])):
         data["history"][i] = {
             "firmware": data["history"][i][0],
             "timestamp": data["history"][i][1],
-            "signature": data["history"][i][2]
+            "signature": data["history"][i][2],
         }
     return jsonify(data)
+
 
 if __name__ == "__main__":
     mechanic = Manufacturer(sys.argv[1])
