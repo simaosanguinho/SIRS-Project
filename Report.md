@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-The MotorIST project is a project that aims to provide a secure and efficient way to manage remote car configurations, such as close/open the car, configure the AC and check the battery level. This is done by a user application installer on the users computer/mobile. Additionally, and to maintain the car up to date, the car also allows for firmware updates from the manufacturer and test from the mechanic.
+The MotorIST project is a project that aims to provide a secure and efficient way to manage remote car configurations, such as close/open the car, configure the AC and check the battery level. This is done by a user application installed on the user's computer or smartphone. Additionally, the car also allows for firmware updates from its manufacturer and permits maintenance tasks from the mechanic.
 
 ### 1.1. Protection Goals
 
@@ -11,7 +11,7 @@ Due to all the communication with the car being sensitive, the MotorIST project 
 - \[SR1: Confidentiality\] The car configurations can only be seen by the car owner.
 - \[SR2: Integrity 1\] The car can only accept configurations sent by the car owner.
 - \[SR3: Integrity 2\] The car firmware updates can only be sent by the car manufacturer.
-- \[SR4: Authentication\] The car manufacture cannot deny having sent firmware updates.
+- \[SR4: Authentication\] The car manufacturer cannot deny having sent firmware updates.
 
 ### 1.2. Security Challenge
 
@@ -21,7 +21,7 @@ The security challenge of this project is to ensure the following:
 - \[SRB2: authorization\] The mechanic (when authenticated) can change any parameter of the car, for testing purposes.
 - \[SRB3: data authenticity\] The user can verify that the mechanic performed all the tests to the car.
 
-For this, it is also necessary to implement a maintenance mode on the car, which is set by the user. In this mode the car is set to the default configuration.
+For this, it is also necessary to implement a maintenance mode on the car, which is set by the user. In this mode the car is set to the default configuration and permits maintenance tasks from a mechanic.
 
 ### 1.3. Secure Documents
 
@@ -45,7 +45,7 @@ MotorIST's custom cryptographic library is designed to protect, verify, and unpr
 
 ##### 2.2.1.1. Confidentiality
 
-To ensure that sensitive information is kept private and only accessible to authorized individuals or systems, this is, to ensure confidentiality, the document is encrypted using the ChaCha20Poly1305 algorithm. This algorithm is an authenticated encryption with associated data (AEAD) algorithm, meaning that it provides both data confidentiality and data authenticity.
+To ensure that sensitive information is kept private and only accessible to authorized individuals or systems - in other words, to ensure confidentiality - the document is encrypted using the ChaCha20Poly1305 algorithm. This algorithm is an authenticated encryption with associated data (AEAD) algorithm, meaning that it provides both data confidentiality and data authenticity.
 
 When we were thinking of which algorithm to use, we were first thinking of using AES, but we decided to use ChaCha20Poly1305 because it is optimized for software performance, making it faster than AES without hardware support. It also a [great choice](https://ieeexplore.ieee.org/document/7927078) on IoT devices, and embedded systems, which is the case of the car.
 
@@ -57,9 +57,9 @@ Acho que isto tem a ver com a parte dos CAs? "\[SR2: Integrity 1\] The car can o
 
 ##### 2.2.1.3. Authenticity
 
-To ensure authenticity and non-repudiation, which means that the person who appears to have performed an action is indeed the one who did it, we use asymmetric cryptography. For example, the case of the car manufacturer, the firmware is signed using the manufacturer's private key. This signature is then verified by the car using the manufacturer's public key.
+To ensure authenticity and non-repudiation, which means that the person who appears to have performed an action is indeed the one who did it, we use asymmetric cryptography. For example, in the case of the car manufacturer, the firmware is signed using the manufacturer's private key. This signature is then verified by the car using the manufacturer's public key, which is distributed beforehand via the manufacturer's certificate.
 
-@girao agora nao tenho a certeza se a justifacação aqui deva ser asymetric keys ou se falo em CAs.
+@FIXME girao agora nao tenho a certeza se a justifacação aqui deva ser asymetric keys ou se falo em CAs.
 
 #### 2.2.2. Document Structure
 
