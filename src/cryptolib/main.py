@@ -330,7 +330,7 @@ class PKI:
         """
         # Our custom objects are stored in the certificate, according to RFC5280.
         # They are stored as `Subject Alternative Names` of the `otherName` type.
-        other_names = PKI.get_subject_names(cert).get_values_for_type(x509.OtherName)
+        other_names = PKI.__get_subject_names(cert).get_values_for_type(x509.OtherName)
 
         # Since our values of otherName contain data in a custom format (i.e. have a custom OID),
         # OpenSSL will not know how to correctly parse its data when adding it to a certificate.

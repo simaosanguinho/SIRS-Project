@@ -5,6 +5,8 @@ import cryptolib
 from cryptolib import PKI
 import requests
 from psycopg_pool import ConnectionPool
+import sys
+from enum import Enum
 
 app = Flask(__name__)
 
@@ -26,9 +28,28 @@ pool = ConnectionPool(
 )
 
 
+class Role(Enum):
+    User = 1
+    Mechanic = 2
+
+
+class Entity:
+    def __init__(self, cert):
+        self.email = PKI.get_subject_email(cert)
+        role_attr = PKI.get_san_custom_oid(cert, "1.2.3.4.1")
+        carowner_attr = PKI.get_san_custom_oid(cert, "1.2.3.4.2")
+
+        # TODO: verify certificate
+        if role_attr:
+            role_name = role_attr.removeprefix("motorist_role--")
+            self.role = Role(role_name)
+        if carowner_attr:
+            self.car_owner = role_attr.removeprefix("motorist_carowner--")
+
+
 class Car:
     def __init__(self, default_config, car_id, owner_id):
-        self.maintnaince_mode = False
+        self.maintenance_mode = False
         self.config = {}
         self.firmware = {}
         self.id = car_id
@@ -109,7 +130,7 @@ class Car:
         with open(config_path, "r") as file:
             self.config = json.load(file)
 
-    def is_user_owner(self, user):
+    def is_user_owner(self, user: Entity):
         return user in self.config["user"]
 
     # add method to build the car document (carid, user, config)
@@ -169,9 +190,9 @@ class Car:
 
     def update_firmware(self, firmware, signature):
         print("Updating Firmware")
-        print("Maintenance Mode: ", self.maintnaince_mode)
+        print("Maintenance Mode: ", self.maintenance_mode)
         # check if maintenance mode is on
-        if not self.maintnaince_mode:
+        if not self.maintenance_mode:
             return "Firmware Update Failed: Maintenance Mode is Off"
 
         if not PKI.verify_signature(MANUFACTURER_CERT, firmware, signature):
@@ -210,11 +231,11 @@ def maintenance_mode(mode):
     return "User not authorized to change maintenance mode" """
 
     if mode == "on":
-        car.maintnaince_mode = True
+        car.maintenance_mode = True
         # set car config to default
         car.setConfig(default_config_path)
     elif mode == "off":
-        car.maintnaince_mode = False
+        car.maintenance_mode = False
     else:
         return "Invalid mode"
     return f"Maintenance mode is {mode}"
@@ -276,6 +297,12 @@ def get_car_document():
     return json.dumps(car.build_car_document(car.config))
 
 
+@app.route("/debug/whoami")
+def whoami():
+    return "FIXME"
+    # return json.dumps(car.build_car_document(car.config))
+
+
 # TODO: Add endpoint to update firmware
 @app.route("/update-firmware", methods=["POST"])
 def update_firmware():
@@ -296,8 +323,6 @@ if not default_config_path:
 
 
 if __name__ == "__main__":
-    import sys
-
     manufacturer_url = f"http://127.0.0.1:{5200 + int(1)}"
 
     car = Car(default_config_path, sys.argv[1], sys.argv[2])
