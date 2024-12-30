@@ -8,7 +8,8 @@ from psycopg_pool import ConnectionPool
 import sys
 from enum import Enum
 
-app = Flask(__name__)
+import werkzeug.serving
+import ssl
 
 # Database connection parameters
 PG_CONNSTRING = os.getenv(
@@ -17,8 +18,40 @@ PG_CONNSTRING = os.getenv(
 )
 PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
 KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
-MANUFACTURER_CERT_PATH = f"{KEY_STORE}/manufacturer.crt"
-MANUFACTURER_CERT = PKI.load_certificate(MANUFACTURER_CERT_PATH)
+MANUFACTURER_CERT = PKI.load_certificate(f"{KEY_STORE}/manufacturer.crt")
+ROOT_CA_PATH = f"{KEY_STORE}/ca.crt"
+
+app = Flask(__name__)
+
+
+# Source: https://web.archive.org/web/20210928235937/https://www.ajg.id.au/2018/01/01/mutual-tls-with-python-flask-and-werkzeug/
+class PeerCertWSGIRequestHandler(werkzeug.serving.WSGIRequestHandler):
+    """
+    We subclass this class so that we can gain access to the connection
+    property. self.connection is the underlying client socket. When a TLS
+    connection is established, the underlying socket is an instance of
+    SSLSocket, which in turn exposes the getpeercert() method.
+
+    The output from that method is what we want to make available elsewhere
+    in the application.
+    """
+
+    def make_environ(self):
+        """
+        The superclass method develops the environ hash that eventually
+        forms part of the Flask request object.
+
+        We allow the superclass method to run first, then we insert the
+        peer certificate into the hash. That exposes it to us later in
+        the request variable that Flask provides
+        """
+        environ = super(PeerCertWSGIRequestHandler, self).make_environ()
+        x509_binary = self.connection.getpeercert(binary_form=True)
+
+        peer_cert = PKI.load_certificate(cert_binary=x509_binary)
+        environ["peercert"] = peer_cert
+        return environ
+
 
 # Initialize the connection pool
 pool = ConnectionPool(
@@ -48,7 +81,7 @@ class Entity:
 
 
 class Car:
-    def __init__(self, default_config, car_id, owner_id):
+    def __init__(self, default_config, car_id, owner_id=None):
         self.maintenance_mode = False
         self.config = {}
         self.firmware = {}
@@ -56,7 +89,10 @@ class Car:
         self.user_id = owner_id
         self.battery_level = 100
         self.op_count = 0
+        self.car_name = f"car{car_id}"
+        self.key_store = f"{KEY_STORE}/{self.car_name}-web"
         config = None
+        print(f"DEBUG: {self.key_store}")
         # if there is a config in the database, use that
         try:
             with pool.connection() as conn:
@@ -85,8 +121,9 @@ class Car:
                 self.config = json.load(file)
                 print("Default Config", self.config)
                 config_protected = cryptolib.protect_lib(
+                    # FIXME: dont use hardcoded key
                     self.config,
-                    "../../test/keys/chacha.key",
+                    f"{PROJECT_ROOT}/test/keys/chacha.key",
                     ["configuration"],
                 )
                 print("Default Config", config_protected)
@@ -299,8 +336,7 @@ def get_car_document():
 
 @app.route("/debug/whoami")
 def whoami():
-    return "FIXME"
-    # return json.dumps(car.build_car_document(car.config))
+    return str(request.environ["peercert"])
 
 
 # TODO: Add endpoint to update firmware
@@ -317,7 +353,9 @@ def update_firmware():
 
 
 # Use environment variable to set config path - DEFAULT_CONFIG_PATH
-default_config_path = os.getenv("DEFAULT_CONFIG_PATH")
+default_config_path = os.getenv(
+    "DEFAULT_CONFIG_PATH", f"{os.path.dirname(__file__)}/default_config.json"
+)
 if not default_config_path:
     raise ValueError("DEFAULT_CONFIG_PATH environment variable not set")
 
@@ -328,5 +366,24 @@ if __name__ == "__main__":
     car = Car(default_config_path, sys.argv[1], sys.argv[2])
     # set different port for car based on id
     port = 5000 + int(sys.argv[1])
-    app.run(port=port)
-    app.run()
+
+    # create_default_context establishes a new SSLContext object that
+    # aligns with the purpose we provide as an argument. Here we provide
+    # Purpose.CLIENT_AUTH, so the SSLContext is set up to handle validation
+    # of client certificates.
+    ssl_context = ssl.create_default_context(
+        purpose=ssl.Purpose.CLIENT_AUTH, cafile=ROOT_CA_PATH
+    )
+
+    # load in the certificate and private key for our server to provide to clients.
+    # force the client to provide a certificate.
+    ssl_context.load_cert_chain(
+        certfile=f"{car.key_store}/entity.crt",
+        keyfile=f"{car.key_store}/key.priv",
+        password="",
+    )
+    ssl_context.verify_mode = ssl.CERT_REQUIRED
+
+    app.run(
+        port=port, ssl_context=ssl_context, request_handler=PeerCertWSGIRequestHandler
+    )

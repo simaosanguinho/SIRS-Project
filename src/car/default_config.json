@@ -1,0 +1,16 @@
+{
+    "carId": 1,
+    "user": "user1",
+    "configuration": {
+        "ac": true,
+        "driver_door": "closed",
+        "tire_pressure": {
+            "1": "1psi",
+            "2": "3psi",
+            "3": "7psi",
+            "4": "1000psi"
+        },
+        "battery": "100%"
+    },
+    "firmware": "2"
+}

@@ -21,7 +21,7 @@ from cryptography.hazmat.primitives.serialization import (
 import hashlib
 from cryptography.hazmat.backends import default_backend
 from cryptography import x509
-from cryptography.x509 import load_pem_x509_certificate, Certificate
+from cryptography.x509 import Certificate
 from cryptography.x509.oid import ExtensionOID
 from cryptography.x509.verification import PolicyBuilder, Store, VerificationError
 from cryptography.exceptions import InvalidTag
@@ -363,10 +363,15 @@ class PKI:
             return False
 
     @staticmethod
-    def load_certificate(cert_path):
-        with open(cert_path, "rb") as f:
-            cert_bytes = f.read()
-        return load_pem_x509_certificate(cert_bytes)
+    def load_certificate(cert_path=None, cert_binary=None):
+        if cert_path:
+            with open(cert_path, "rb") as f:
+                cert_bytes = f.read()
+            return x509.load_pem_x509_certificate(cert_bytes)
+        elif cert_binary:
+            return x509.load_der_x509_certificate(cert_binary)
+
+        raise ValueError("must specify either cert_path or cert_binary")
 
 
 if __name__ == "__main__":

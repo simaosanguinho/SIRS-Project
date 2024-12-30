@@ -81,6 +81,8 @@
                 flask
                 psycopg-pool
                 requests
+                pyopenssl
+                werkzeug
               ]))
               pkgs.openssl
               pkgs.step-ca
