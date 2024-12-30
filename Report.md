@@ -35,6 +35,7 @@ Due to the nature of the project, we had to make some assumptions to simplify th
 
 - We assume that the car key corresponds to the key of the car owner.
 - We assume that the car battery always starts at 100%, and the battery level is reduced by 5% for each 10 configurations sent to the car.
+- We assume that the car has a default configuration that is set when the maintenance mode is activated.
 
 ### 2.2. Secure Documents Library
 
