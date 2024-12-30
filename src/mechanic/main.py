@@ -5,9 +5,15 @@ from textual.screen import Screen
 from textual.theme import Theme
 
 import requests
-import cryptolib
+from cryptolib import PKI
+import os
 
 # from textual.widgets import Input
+
+PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
+KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
+MANUFACTURER_CERT_PATH = f"{KEY_STORE}/manufacturer.crt"
+MANUFACTURER_CERT = PKI.load_certificate(MANUFACTURER_CERT_PATH)
 
 
 class HomeScreen(Screen):
@@ -88,9 +94,7 @@ def update_firmware():
     firmware = response.json()["firmware"]
     signature = response.json()["signature"]
     # DOES THE MECHANIC NEED TO CHECK THE SIGNATURE?
-    if not cryptolib.verify_signature(
-        "../../test/keys/user1.pubkey", firmware, signature
-    ):
+    if not PKI.verify_signature(MANUFACTURER_CERT, firmware, signature):
         return "Invalid signature"
 
     # send the firmware to the car
@@ -111,9 +115,7 @@ def update_firmware(car_id):
     firmware = response.json()["firmware"]
     signature = response.json()["signature"]
     # DOES THE MECHANIC NEED TO CHECK THE SIGNATURE?
-    if not cryptolib.verify_signature(
-        "../../test/keys/user1.pubkey", firmware, signature
-    ):
+    if not PKI.verify_signature(MANUFACTURER_CERT, firmware, signature):
         return "Invalid signature"
 
     # send the firmware to the car

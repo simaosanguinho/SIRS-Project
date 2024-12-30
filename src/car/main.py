@@ -2,6 +2,7 @@ from flask import Flask, request
 import json
 import os
 import cryptolib
+from cryptolib import PKI
 import requests
 from psycopg_pool import ConnectionPool
 
@@ -13,6 +14,11 @@ DB_PORT = 7464
 DB_NAME = "motorist-car-db"
 DB_USER = "postgres"
 DB_PASSWORD = "password"
+
+PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
+KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
+MANUFACTURER_CERT_PATH = f"{KEY_STORE}/manufacturer.crt"
+MANUFACTURER_CERT = PKI.load_certificate(MANUFACTURER_CERT_PATH)
 
 # Initialize the connection pool
 pool = ConnectionPool(
@@ -170,9 +176,7 @@ class Car:
         if not self.maintnaince_mode:
             return "Firmware Update Failed: Maintenance Mode is Off"
 
-        if not cryptolib.verify_signature(
-            "../../test/keys/user1.pubkey", firmware, signature
-        ):
+        if not PKI.verify_signature(MANUFACTURER_CERT, firmware, signature):
             return "Invalid signature"
 
         try:
