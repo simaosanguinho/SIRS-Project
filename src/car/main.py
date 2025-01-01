@@ -264,7 +264,7 @@ def root():
     return "<h3>Welcome to the Car App!  </h3> Car ID: " + str(car.id)
 
 
-@app.rout("/set-car-key", methods=["POST"])
+@app.route("/set-car-key", methods=["POST"])
 def set_car_key():
     data = request.get_json()
     encrypted_car_key = data["key"]
