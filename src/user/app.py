@@ -13,7 +13,7 @@ from cryptolib import PKI
 
 PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
 KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
-USER = os.getenv("USER", "ronaldo@user.motorist.lan")
+USER_MOTORIST = os.getenv("USER_MOTORIST", "ronaldo@user.motorist.lan")
 
 class HomeScreen(Screen):
     """Home screen that displays basic car management options."""
@@ -227,7 +227,7 @@ class CarApp(App):
         self.car_id = car_id
         self.owner_id = owner_id
         self.flask_url = flask_url
-        self.key_store = f"{KEY_STORE}/{USER}"
+        self.key_store = f"{KEY_STORE}/{USER_MOTORIST}"
         
         # encrypt the car.key with the car public key
         self.encrypted_car_key = PKI.encrypt_data(
