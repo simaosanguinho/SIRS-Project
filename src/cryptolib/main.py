@@ -374,8 +374,9 @@ class PKI:
         raise ValueError("must specify either cert_path or cert_binary")
     
     @staticmethod
-    def encrypt_data(data, cert: Certificate):
+    def encrypt_data(data, cert_path):
         """Encrypts data using a certificate's public key."""
+        cert = PKI.load_certificate(cert_path)
         public_key = cert.public_key()
         encrypted_data = public_key.encrypt(
             data.encode("utf-8"),
