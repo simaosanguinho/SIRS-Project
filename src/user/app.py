@@ -8,6 +8,8 @@ import requests
 import cryptolib
 import json
 import os
+from cryptolib import PKI
+
 
 PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
 KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
