@@ -230,7 +230,7 @@ class CarApp(App):
         self.key_store = f"{KEY_STORE}/{USER}"
         
         # encrypt the car.key with the car public key
-        self.encrypted_car_key = PKI.encrypt(
+        self.encrypted_car_key = PKI.encrypt_data(
             f"{self.key_store}/car.key", f"{self.key_store}/../car1-web/entity.crt"
         )
         
