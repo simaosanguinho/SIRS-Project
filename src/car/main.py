@@ -118,9 +118,13 @@ class Car:
             print("Config from DB", self.config)
         # no config found, use default
         else:
+            
             with open(default_config, "r") as file:
                 self.config = json.load(file)
                 print("Default Config", self.config)
+                if not self.car_key:
+                    # dont save the config if the car key is not set
+                    return
                 config_protected = cryptolib.protect_lib(
                     # FIXME: dont use hardcoded key
                     self.config,
