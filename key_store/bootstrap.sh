@@ -17,3 +17,6 @@ done
 ./gen_entity.sh ronaldo@user.motorist.lan user car1
 ./gen_entity.sh messi@mechanic.motorist.lan mechanic
 ./gen_entity.sh johndoe@user.motorist.lan user
+
+# Init car keys
+./gen_car_key.sh ronaldo@user.motorist.lan
