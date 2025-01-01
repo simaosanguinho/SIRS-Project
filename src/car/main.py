@@ -91,6 +91,7 @@ class Car:
         self.op_count = 0
         self.car_name = f"car{car_id}"
         self.key_store = f"{KEY_STORE}/{self.car_name}-web"
+        self.car_key = None
         config = None
         print(f"DEBUG: {self.key_store}")
         # if there is a config in the database, use that
@@ -123,7 +124,7 @@ class Car:
                 config_protected = cryptolib.protect_lib(
                     # FIXME: dont use hardcoded key
                     self.config,
-                    f"{PROJECT_ROOT}/test/keys/chacha.key",
+                    f"{car.key_store}/car.key",
                     ["configuration"],
                 )
                 print("Default Config", config_protected)
@@ -259,14 +260,24 @@ class Car:
 
 @app.route("/")
 def root():
+    if not car.car_key: return "Not allowed without a key", 503
     return "<h3>Welcome to the Car App!  </h3> Car ID: " + str(car.id)
 
+
+@app.rout("/set-car-key", methods=["POST"])
+def set_car_key():
+    data = request.get_json()
+    encrypted_car_key = data["key"]
+    car.car_key = PKI.decrypt_data(encrypted_car_key, f"{car.key_store}/key.priv")
+    return "Car key set successfully"
+    
 
 @app.route("/maintenance-mode/<mode>")
 def maintenance_mode(mode):
     """if not car.is_user_owner("admin"):
     return "User not authorized to change maintenance mode" """
 
+    if not car.car_key: return "Not allowed without a key", 503
     if mode == "on":
         car.maintenance_mode = True
         # set car config to default
@@ -280,6 +291,7 @@ def maintenance_mode(mode):
 
 @app.route("/update-config", methods=["POST"])
 def update_config():
+    if not car.car_key: return "Not allowed without a key", 503
     data = request.get_json()
     print("Data Received", data)
     print("Type", type(data))
@@ -289,7 +301,7 @@ def update_config():
 
     try:
         """unprotected_data = cryptolib.unprotect_lib(
-            data, "../../test/keys/chacha.key", ["configuration"]
+            data, f"{car.key_store}/car.key", ["configuration"]
         )
         car.config = unprotected_data["configuration"]"""
 
@@ -309,6 +321,7 @@ def update_config():
 
 @app.route("/get-config")
 def get_config():
+    if not car.car_key: return "Not allowed without a key", 503
     try:
         config = car.get_current_config()
         return config
@@ -318,11 +331,13 @@ def get_config():
 
 @app.route("/check-battery")
 def check_battery():
+    if not car.car_key: return "Not allowed without a key", 503
     return f"Battery Level: {car.battery_level} %"
 
 
 @app.route("/charge-battery")
 def charge_battery():
+    if not car.car_key: return "Not allowed without a key", 503
     car.battery_level = 100
     car.op_count = 0
     return "Battery has been charged to 100%"
@@ -331,17 +346,20 @@ def charge_battery():
 # DEBUG ENDPOINTS
 @app.route("/debug/get-doc")
 def get_car_document():
+    if not car.car_key: return "Not allowed without a key", 503
     return json.dumps(car.build_car_document(car.config))
 
 
 @app.route("/debug/whoami")
 def whoami():
+    if not car.car_key: return "Not allowed without a key", 503
     return str(request.environ["peercert"])
 
 
 # TODO: Add endpoint to update firmware
 @app.route("/update-firmware", methods=["POST"])
 def update_firmware():
+    if not car.car_key: return "Not allowed without a key", 503
     try:
         # check maintenance mode
         data = request.get_json()

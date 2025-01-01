@@ -8,9 +8,9 @@ import requests
 import cryptolib
 import json
 
-
-#
-
+PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
+KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
+USER = os.getenv("USER", "ronaldo@user.motorist.lan")
 
 class HomeScreen(Screen):
     """Home screen that displays basic car management options."""
@@ -61,24 +61,39 @@ class HomeScreen(Screen):
         try:
             if button_id == "maintenance-on":
                 response = requests.get(f"{app.flask_url}/maintenance-mode/on")
+                if response.status_code == 503:
+                    requests.post(f"{app.flask_url}/set-car-key", json={"key": app.encrypted_car_key})
+                    response = requests.get(f"{app.flask_url}/maintenance-mode/on")
                 self.display_output(response.text)
 
             elif button_id == "maintenance-off":
                 response = requests.get(f"{app.flask_url}/maintenance-mode/off")
+                if response.status_code == 503:
+                    requests.post(f"{app.flask_url}/set-car-key", json={"key": app.encrypted_car_key})
+                    response = requests.get(f"{app.flask_url}/maintenance-mode/off")
                 self.display_output(response.text)
 
             elif button_id == "check-battery":
                 response = requests.get(f"{app.flask_url}/check-battery")
+                if response.status_code == 503:
+                    requests.post(f"{app.flask_url}/set-car-key", json={"key": app.encrypted_car_key})
+                    response = requests.get(f"{app.flask_url}/check-battery")
                 self.display_output(response.text)
 
             elif button_id == "charge-battery":
                 response = requests.get(f"{app.flask_url}/charge-battery")
+                if response.status_code == 503:
+                    requests.post(f"{app.flask_url}/set-car-key", json={"key": app.encrypted_car_key})
+                    response = requests.get(f"{app.flask_url}/charge-battery")
                 self.display_output(response.text)
 
             elif button_id == "get-config":
                 response = requests.get(f"{app.flask_url}/get-config")
+                if response.status_code == 503:
+                    requests.post(f"{app.flask_url}/set-car-key", json={"key": app.encrypted_car_key})
+                    response = requests.get(f"{app.flask_url}/get-config")
                 car_unprotected_doc = cryptolib.unprotect_lib(
-                    response.json(), "../../test/keys/chacha.key", ["configuration"]
+                    response.json(), f"{app.key_store}/car.key", ["configuration"]
                 )
                 self.display_output(
                     "Current Configuration: "
@@ -131,9 +146,12 @@ class UpdateConfigScreen(Screen):
         try:
             # Fetch current configuration from Flask API
             response = requests.get(f"{app.flask_url}/get-config")
+            if response.status_code == 503:
+                requests.post(f"{app.flask_url}/set-car-key", json={"key": app.encrypted_car_key})
+                response = requests.get(f"{app.flask_url}/get-config")
             if response.status_code == 200:
                 car_unprotected_doc = cryptolib.unprotect_lib(
-                    response.json(), "../../test/keys/chacha.key", ["configuration"]
+                    response.json(), f"{app.key_store}/car.key", ["configuration"]
                 )
                 # Assuming the config is returned as a dictionary
                 self.config_input.value = json.dumps(
@@ -165,7 +183,7 @@ class UpdateConfigScreen(Screen):
                     # TODO: change these hardcoded values
                     car_doc_protected = cryptolib.protect_lib(
                         car_doc_unprotected,
-                        "../../test/keys/chacha.key",
+                        f"{app.key_store}/car.key",
                         ["configuration"],
                     )
 
@@ -173,6 +191,12 @@ class UpdateConfigScreen(Screen):
                         f"{app.flask_url}/update-config",
                         json=car_doc_protected,
                     )
+                    if response.status_code == 503:
+                        requests.post(f"{app.flask_url}/set-car-key", json={"key": app.encrypted_car_key})
+                        response = requests.post(
+                            f"{app.flask_url}/update-config",
+                            json=car_doc_protected,
+                        )
                     self.display_output(response.text)
                 else:
                     self.display_output("Please enter a valid configuration JSON.")
@@ -200,6 +224,12 @@ class CarApp(App):
         self.car_id = car_id
         self.owner_id = owner_id
         self.flask_url = flask_url
+        self.key_store = f"{KEY_STORE}/{USER}"
+        
+        # encrypt the car.key with the car public key
+        self.encrypted_car_key = PKI.encrypt(
+            f"{self.key_store}/car.key", f"{self.key_store}/../car1-web/entity.crt"
+        
 
     def on_mount(self) -> None:
         # self.install_screen(HomeScreen(), name="home")
