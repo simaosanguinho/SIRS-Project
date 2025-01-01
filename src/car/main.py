@@ -124,7 +124,7 @@ class Car:
                 config_protected = cryptolib.protect_lib(
                     # FIXME: dont use hardcoded key
                     self.config,
-                    f"{self.key_store}/car.key",
+                    f"{self.car_key}",
                     ["configuration"],
                 )
                 print("Default Config", config_protected)
