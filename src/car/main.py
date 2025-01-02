@@ -63,8 +63,8 @@ pool = ConnectionPool(
 
 
 class Role(Enum):
-    User = 1
-    Mechanic = 2
+    User = "user"
+    Mechanic = "mechanic"
 
 
 class Entity:
@@ -72,7 +72,7 @@ class Entity:
         self.email = PKI.get_subject_email(cert)
         role_attr = PKI.get_san_custom_oid(cert, "1.2.3.4.1")
         carowner_attr = PKI.get_san_custom_oid(cert, "1.2.3.4.2")
-
+        self.car_owner = None
         # TODO: verify certificate
         if role_attr:
             role_name = role_attr.removeprefix("motorist_role--")
@@ -450,8 +450,9 @@ def run_tests():
 
 @app.route("/maintenance-mode/<mode>")
 def maintenance_mode(mode):
-    """if not car.is_user_owner("admin"):
-    return "User not authorized to change maintenance mode" """
+    entity = Entity(request.environ["peercert"])
+    if not entity.role == Role.User or not entity.car_owner == car.id:
+        return "User not authorized to change maintenance mode"
 
     if not car.car_key:
         return "Not allowed without a key", 503
@@ -482,11 +483,6 @@ def update_config():
     # Change the hardcoded values
 
     try:
-        """unprotected_data = cryptolib.unprotect_lib(
-            data, f"{car.key_store}/car.key", ["configuration"]
-        )
-        car.config = unprotected_data["configuration"]"""
-
         # store the update protected
         car.store_update(json.dumps(data["configuration"]))
 
@@ -503,6 +499,11 @@ def update_config():
 
 @app.route("/update-mechanic-config", methods=["POST"])
 def update_mechanic_config():
+    # Authenticate the user
+    entity = Entity(request.environ["peercert"])
+    if not entity.role == Role.Mechanic:
+        return "User not authorized to change the mechanic config"
+
     if not car.maintenance_mode:
         return "Maintenance Mode is off", 504
     data = request.get_json()
@@ -520,6 +521,11 @@ def update_mechanic_config():
 
 @app.route("/get-mechanic-config")
 def get_mechanic_config():
+    # Authenticate the user
+    entity = Entity(request.environ["peercert"])
+    if not entity.role == Role.Mechanic:
+        return "User not authorized to change the mechanic config"
+
     if not car.maintenance_mode:
         return "Maintenance Mode is off", 504
     return json.dumps(car.mechanic_config)
