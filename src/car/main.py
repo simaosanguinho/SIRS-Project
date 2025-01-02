@@ -174,10 +174,6 @@ class Car:
             print("Firmware from Manufacturer", firmware)
         self.initialized = True
 
-    def setConfig(self, config_path):
-        with open(config_path, "r") as file:
-            self.config = json.load(file)
-
     def is_user_owner(self, user: Entity):
         return user in self.config["user"]
 
