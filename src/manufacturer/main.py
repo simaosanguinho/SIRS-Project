@@ -107,3 +107,7 @@ def start():
             f"{manufacturer.key_store}/key.priv",
         ),
     )
+
+
+if __name__ == "__main__":
+    start()
