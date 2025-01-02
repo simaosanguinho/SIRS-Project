@@ -33,9 +33,10 @@ The communication with the car is done using a JSON document which will have the
 
 Due to the nature of the project, we had to make some assumptions to simplify the implementation of the project. These assumptions are:
 
-- We assume that the car key corresponds to the key of the car owner.
-- We assume that the car battery always starts at 100%, and the battery level is reduced by 5% for each 10 configurations sent to the car.
-- We assume that the car has a default configuration that is set when the maintenance mode is activated.
+- The car key corresponds to the key of the car owner.
+- The car battery always starts at 100%, and the battery level is reduced by 5% for each 10 configurations sent to the car.
+- The car has a default configuration that is set when the maintenance mode is activated.
+- The private key of the Certificate Authority (CA) is safe and trustworthy.
 
 ### 2.2. Secure Documents Library
 
@@ -53,13 +54,19 @@ The ChaCha20-Poly1305 algorithm takes as input a 256-bit key and a 96-bit nonce 
 
 ##### 2.2.1.2. Integrity
 
-Acho que isto tem a ver com a parte dos CAs? "\[SR2: Integrity 1\] The car can only accept configurations sent by the car owner; \[SR3: Integrity 2\] The car firmware updates can only be sent by the car manufacturer." @girao esta parte ns mm qual a justifacao mais correta a dar, mas aposto em CAs.
+<!-- Acho que isto tem a ver com a parte dos CAs? "\[SR2: Integrity 1\] The car can only accept configurations sent by the car owner; \[SR3: Integrity 2\] The car firmware updates can only be sent by the car manufacturer." @girao esta parte ns mm qual a justifacao mais correta a dar, mas aposto em CAs.
+
+A CA representa o manufactiurer -->
+
+The integrity in our system is mainly ensured by the Certificate Authority (CA), that represents the manufacturer and that will delegate to each server and client a private key as well as their own certificate. This certificate apart from being signed by the CA, it gives out the email address of the entity that it belongs to and in case the entity is an user that owns a car, iit states which car they own, through the car id value. If the car wants to check that an incoming firmware update was in fact issued by the manufacturer, a certificate is sent alongside it and the car proceeds to see if the certifcate is valid and through the signatures in them. When a client wants to request an alteration in a car configuration, apartr from sending their certificate thats is used by the car to validate their entity, it also needs to send the car key, a symmetric key that belongs to the car owner (user) and that is exchanged to the car through a mutual tls channel once the first request is made, as the car returns the error `503`. Once the car has its key, and the opwner properly sends their certificate, the system can guarantee that only the owner can perform updates to the configuration, thus ensuring the system's integrity.
 
 ##### 2.2.1.3. Authenticity
 
-To ensure authenticity and non-repudiation, which means that the person who appears to have performed an action is indeed the one who did it, we use asymmetric cryptography. For example, in the case of the car manufacturer, the firmware is signed using the manufacturer's private key. This signature is then verified by the car using the manufacturer's public key, which is distributed beforehand via the manufacturer's certificate.
+To ensure authenticity and non-repudiation, which means that the person who appears to have performed an action is indeed the one who did it, we use asymmetric cryptography. For example, in the case of the car manufacturer, the firmware is signed using the manufacturer's private key. This signature is then verified by the car using the manufacturer's public key, which is distributed beforehand via the manufacturer's certificate, which prevents other entities from imperssonating the manufacturer and sending malicious firmware updates.
 
-@FIXME girao agora nao tenho a certeza se a justifacação aqui deva ser asymetric keys ou se falo em CAs.
+<!-- @FIXME girao agora nao tenho a certeza se a justifacação aqui deva ser asymetric keys ou se falo em CAs. -->
+
+Another way our system guarantees authenticity is when a config is sent in a protected manner by the cryptolib. The  data is protected using encryption algorithms whcih means that if a single byte is altered, the decryption will certainly fail. Furthermore, a random nonce field is added for each of the encrypted fields in the car document, ensuring data freshness, which will prevent replay attacks, that can happen if an attacker intercepts and tries retransmits a valid data exchange to trick the system into accepting it as legitimate.
 
 #### 2.2.2. Document Structure
 
@@ -77,8 +84,7 @@ An unprotected document is a JSON object with the following structure:
             "2": "3psi",
             "3": "7psi",
             "4": "1000psi"
-        },
-        "battery": "100%"
+        }
     },
    
     "firmware": "2"
