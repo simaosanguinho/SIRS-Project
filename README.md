@@ -8,9 +8,7 @@
 | 102082  | Simão Sanguinho      | https://github.com/rafaelsgirao    | <mailto:simaosanguinho@tecnico.ulisboa.pt>     |
 | 103252  | José Pereira  | https://github.com/pereira0x | <mailto:jose.a.pereira@tecnico.ulisboa.pt> |
 
-
 ![Rafael](img/ist199309.png) ![Simão](img/ist1102082.png) ![José](img/ist1103252.png)
-
 
 ## Contents
 
@@ -25,7 +23,7 @@ This document presents installation and demonstration instructions.
 
 ## Installation
 
-To see the project in action, it is necessary to setup a virtual environment, with N networks and M machines.  
+To see the project in action, it is necessary to setup a virtual environment, with N networks and M machines.
 
 The following diagram shows the networks and machines:
 
@@ -33,9 +31,9 @@ The following diagram shows the networks and machines:
 
 ### Prerequisites
 
-All the virtual machines are based on: Linux 64-bit, Kali 2023.3  
+All the virtual machines are based on: Linux 64-bit, Kali 2023.3
 
-[Download](https://...link_to_download_installation_media) and [install](https://...link_to_installation_instructions) a virtual machine of Kali Linux 2023.3.  
+[Download](https://...link_to_download_installation_media) and [install](https://...link_to_installation_instructions) a virtual machine of Kali Linux 2023.3.\
 Clone the base machine to create the other machines.
 
 *(above, replace witch actual links)*
@@ -99,6 +97,7 @@ When the car owner wants to use the application, they first see the home screen.
 ![Home Screen](img/userApp_home.png)
 
 In this screen they can choose over a variety of options, such as:
+
 - Switch the maintenance mode on or off. For example turning the maintenance mode on, so that the mechanic can perform some tests on the car.
 
 ![Maintenance Mode On](img/userApp_maintenance-menu.png)
@@ -130,7 +129,6 @@ In this screen they can choose over a variety of options, such as:
 ![Update Configuration](img/userApp_update-configuration-output.png)
 ![Update Configuration](img/userApp_update-configuration-output2.png)
 
-
 ### Mechanic
 
 When the mechanic wants to use the application, they first see the home screen.
@@ -138,6 +136,7 @@ When the mechanic wants to use the application, they first see the home screen.
 ![Home Screen](img/mechanicApp_home.png)
 
 In this screen they can choose over a variety of options, such as:
+
 - After specifying the car's id to interact with, the mechanic can update the car's firmware (assuming it is in maintenance mode). This will first ask the manufacturer to issue a new firmware and then the mechanic can apply it to the car.
 
 ![Update Firmware](img/mechanicApp_update-menu.png)
@@ -162,14 +161,15 @@ The manufacturer can issue a new firmware. Since the manufacturer doesn't have a
 
 Has we can see in the image above, the manufacturer can issue a new firmware by calling the endpoint `/get-firmware/<car-id>` with the car's id as a parameter. This will return the new firmware version (he uses the unix timestamp as the firmware version) and the signature of the firmware with the manufacturer's private key, so that it can be later verified.
 
-
 ### Car
 
-The car has various endpoints that allow it to interact with the mechanic and the owner. The car can also interact with the manufacturer, but only to get it's first base firmware once it is manufactured. 
+The car has various endpoints that allow it to interact with the mechanic and the owner. The car can also interact with the manufacturer, but only to get it's first base firmware once it is manufactured.
 
 The endpoints are the ones that were previously mentioned in the Mechanic and Manufacturer sections.
 
 The only endpoint that is not mentioned is the `/set-car-key` endpoint, that allows the car owner to share the car's key (a shared secret that should only be known by the car and the owner) with the car. This is done by calling the endpoint with the car's key, encrypted with the car's public key, as a parameter. This way, the car can decrypt the key and use it to decrypt the configuration updates that the owner sends and retrieves from the car.
+
+![Set Car Key](img/set-car-key.png)
 
 It is important to note that the car has a authorization mechanism that only allows actors to interact with certain endpoints if they have the correct permissions (we use the concept of roles here). For example, if we try to interact with the car's configuration without being the owner, we will get the message that we see in the next image. This verification is done by checking the CA certificate that comes from a trusted CA of the person who is calling the endpoint, and checking the role attribute and also the attribute that says which car that actor owns. If the actor doesn't have the correct permissions, the car will not allow the interaction.
 
@@ -195,12 +195,12 @@ This concludes the demonstration.
   - [Click](https://click.palletsprojects.com/)
 - [NixOS](https://nixos.org/)
 - [PostgreSQL](https://www.postgresql.org/)
-- [MicroVM](https://github.com/astro/microvm.nix)]
+- [MicroVM](https://github.com/astro/microvm.nix)\]
 - [OpenSSL](https://www.openssl.org/)
 - [Step](https://smallstep.com/docs/step-ca/)
 - [Iputils](https://github.com/iputils/iputils)
 - [QEMU](https://www.qemu.org/)
-- 
+-
 
 ### Versioning
 
@@ -210,5 +210,6 @@ We use [Git](https://git-scm.com/) for versioning. For the versions available, s
 
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE) for details.
 
-----
+______________________________________________________________________
+
 END OF README
