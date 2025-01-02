@@ -119,8 +119,6 @@ The main functions of the library are:
 
 The `protect`, `unprotect` and `check` functions are the available to be used as a terminal command. The usage of these commands can be found in the [`README.md`](./src/cryptolib/README.md) file.
 
-@girao nao falo aqui sobre o PKI, e com o ultimo commit que fizeste hj dia 30 nao sei se o sign_data e verify_data ainda existem da mesma forma que descrevo em cima. Pff checka e completa com os metodos que achares necessarios.
-
 ## 2.3 Infrastructure
 
 NixOS, firewalls, certs, cas, firewalls, Secure Server Communication (TLS), etc. @girao
