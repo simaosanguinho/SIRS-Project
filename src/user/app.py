@@ -289,6 +289,7 @@ class UpdateConfigScreen(Screen):
                 else:
                     self.display_output("Please enter a valid configuration JSON.")
             elif button_id == "back-to-home":
+                self.display_output("Output:")
                 self.app.push_screen("home")
         except Exception as e:
             self.display_output(f"Error3: {e}")
