@@ -224,7 +224,7 @@ class HomeScreen(Screen):
                     f"{Common.CAR_URL}/get-config",
                 )
                 if response.status_code == 403:
-                    self.display_output("User not authorized to update configuration.")
+                    self.display_output("User not authorized to update configuration")
                     return
 
                 self.display_output("Output:")
