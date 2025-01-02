@@ -372,7 +372,7 @@ class PKI:
             return x509.load_der_x509_certificate(cert_binary)
 
         raise ValueError("must specify either cert_path or cert_binary")
-    
+
     @staticmethod
     def encrypt_data(data, cert_path):
         """Encrypts data using a certificate's public key."""
@@ -387,11 +387,12 @@ class PKI:
             ),
         )
         return base64.b64encode(encrypted_data).decode("utf-8")
-    
+
     @staticmethod
-    def decrypt_data(encrypted_data, private_key):
+    def decrypt_data(encrypted_data, private_key_path):
         """Decrypts data using a private key."""
         encrypted_data = base64.b64decode(encrypted_data)
+        private_key = load_private_key(private_key_path)
         decrypted_data = private_key.decrypt(
             encrypted_data,
             padding.OAEP(
@@ -401,7 +402,7 @@ class PKI:
             ),
         )
         return decrypted_data.decode("utf-8")
-    
+
 
 if __name__ == "__main__":
     if not sys.flags.interactive:

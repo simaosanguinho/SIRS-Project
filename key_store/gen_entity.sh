@@ -48,8 +48,9 @@ if [[ $ENTITY =~ '@' ]]; then
     -addext "subjectAltName = email:${ENTITY}${EXTRA_ALT_NAME1}${EXTRA_ALT_NAME2}"
   # Otherwise, assume the entity is a server:
 else
+  ALT_NAMES="DNS:$ENTITY.motorist.lan,IP:127.0.0.1"
   openssl req -new -key key.priv -out entity.csr -subj "/C=PT/O=MotorIST Lda./CN=${ENTITY}" \
-    -addext "subjectAltName = DNS:$ENTITY.motorist.lan"
+    -addext "subjectAltName = ${ALT_NAMES}"
 fi
 
 # Sign the CSR with the CA's key:
