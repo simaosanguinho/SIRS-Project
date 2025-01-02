@@ -154,6 +154,7 @@ All these properties are contained in the certificate's `Subject Alternative Nam
 step certificate inspect key_store/ronaldo@user.motorist.lan/entity.crt
 ```
 
+In a parallel configuration to PostgreSQL authentication/authorization, all communication with the car is required to use mutual TLS, where the client's certificate is used as the sole source of both authentication and authorization truth.
 
 
 ## 2.4 Threat Model
