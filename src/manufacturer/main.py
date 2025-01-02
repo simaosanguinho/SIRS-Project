@@ -6,6 +6,7 @@ from datetime import datetime
 import cryptolib
 from psycopg_pool import ConnectionPool
 
+
 # Database connection parameters
 PG_CONNSTRING = os.getenv(
     "PG_CONNSTRING",
@@ -14,6 +15,8 @@ PG_CONNSTRING = os.getenv(
 PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
 KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
 MANUF_PRIV_KEY = f"{KEY_STORE}/manufacturer/key.priv"
+ROOT_CA_PATH = f"{KEY_STORE}/ca.crt"
+
 
 # Initialize the connection pool
 pool = ConnectionPool(
@@ -26,6 +29,7 @@ pool = ConnectionPool(
 class Manufacturer:
     def __init__(self, id):
         self.id = id
+        self.key_store = f"{KEY_STORE}/manufacturer"
 
 
 app = Flask(__name__)
@@ -34,7 +38,7 @@ app = Flask(__name__)
 @app.route("/")
 def root():
     return "<h3>Welcome to the Manufacturer App!  </h3> Manufacturer Id: " + str(
-        mechanic.id
+        manufacturer.id
     )
 
 
@@ -91,7 +95,15 @@ def get_history(car_id):
 
 
 if __name__ == "__main__":
-    mechanic = Manufacturer(sys.argv[1])
+    global manufacturer
+    manufacturer = Manufacturer(sys.argv[1])
     # set different port for manufacturer
     port = 5200 + int(sys.argv[1])
-    app.run(port=port)
+
+    app.run(
+        port=port,
+        ssl_context=(
+            f"{manufacturer.key_store}/entity.crt",
+            f"{manufacturer.key_store}/key.priv",
+        ),
+    )
