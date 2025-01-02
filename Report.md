@@ -227,3 +227,9 @@ To conclude, we are very happy with the results that we achieved in this project
 - "ChaCha20Poly1305" - https://en.wikipedia.org/wiki/ChaCha20-Poly1305
 - "Authenticated Encryption with Associated Data" - https://en.wikipedia.org/wiki/Authenticated_encryption
 - "ChaCha20Poly1305 on IoT devices" - https://ieeexplore.ieee.org/document/7927078
+- "Auth methods Postgres" - https://www.postgresql.org/docs/9.1/auth-methods.html
+- "Postgres small step" -https://smallstep.com/hello-mtls/doc/server/postgresql
+- "Psql postgres" - https://smallstep.com/hello-mtls/doc/client/psql
+- "Auth Password Postgres" - https://www.postgresql.org/docs/10/auth-methods.html#AUTH-PASSWORD
+- "Mutual TLS flask" - https://web.archive.org/web/20210928235937/https://www.ajg.id.au/2018/01/01/mutual-tls-with-python-flask-and-werkzeug/
+- "Serving werkzeug" - https://github.com/pallets/werkzeug/blob/7868bef5d978093a8baa0784464ebe5d775ae92a/src/werkzeug/serving.py#L235
