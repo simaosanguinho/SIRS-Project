@@ -90,7 +90,54 @@ If you receive the following message ... then ...
 
 ## Demonstration
 
-Now that all the networks and machines are up and running, ...
+Now that all the networks and machines are up and running,configured after following the installation instructions, we can now demonstrate the MotorIST project under usage scenario with the following actors:
+
+### Car Owner
+
+When the car owner wants to use the application, they first see the home screen.
+
+![Home Screen](img/userApp_home.png)
+
+In this screen they can choose over a variety of options, such as:
+- Switch the maintenance mode on or off. For example turning the maintenance mode on, so that the mechanic can perform some tests on the car.
+
+![Maintenance Mode On](img/userApp_maintenance-menu.png)
+![Maintenance Mode On](img/userApp_maintenance-output.png)
+
+- Check and change the car's battery. The car battery will drain over time, so the car owner can always charge it.
+
+![Battery](img/userApp_battery-menu.png)
+![Battery](img/userApp_battery-output.png)
+
+- Check the latests car's firmware version and also the history of all the firmware updates. This will allow the car owner to know if the car is up to date and also check if the firmware is verified, this is, that the car manufacturer was the one who signed the firmware.
+
+![Firmware](img/userApp_firmware-menu.png)
+![Firmware](img/userApp_firmware-output.png)
+
+- Check the latests mechanic's tests done on the car and also the history of all the tests. This will allow the car owner to know if the car is in good condition and also check if the mechanic performed all the tests.
+
+![Tests](img/userApp_tests-menu.png)
+![Tests](img/userApp_tests-output.png)
+
+- Get the current configuration of the car, such as the tire pressure, the air conditioning status, etc.
+
+![Configuration](img/userApp_configuration-menu.png)
+![Configuration](img/userApp_configuration-output.png)
+
+- Update the car's configuration.
+
+![Update Configuration](img/userApp_update-configuration-menu.png)
+![Update Configuration](img/userApp_update-configuration-output.png)
+![Update Configuration](img/userApp_update-configuration-output2.png)
+
+
+### Mechanic
+
+### Manufacturer
+
+### Car
+
+
 
 *(give a tour of the best features of the application; add screenshots when relevant)*
 
