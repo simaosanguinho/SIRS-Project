@@ -113,6 +113,7 @@ class UpdateConfigScreen(Screen):
                 )
                 yield Container(self.config_input)
                 yield Button("Update Car Test Configuration", id="send-update-config")
+                yield Button("Get Mechanic Configuration", id="get-mechanic-config")
 
         yield Static("Output:", id="output")
         yield Footer()
@@ -157,6 +158,16 @@ class UpdateConfigScreen(Screen):
                     self.display_output(response.text)
                 else:
                     self.display_output("Please enter a valid configuration JSON.")
+            elif button_id == "get-mechanic-config":
+                response = req.get(f"{Common.CAR_URL}/get-mechanic-config")
+                if response.status_code == 200:
+                    car_unprotected_doc = response.json()
+                    self.display_output(
+                        json.dumps(car_unprotected_doc["configuration"])
+                    )
+                else:
+                    self.display_output("Failed to fetch current configuration.")
+
             elif button_id == "back-to-home":
                 self.display_output("Output:")
                 self.app.push_screen("home")
