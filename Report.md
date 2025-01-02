@@ -131,7 +131,7 @@ The dbs only have one port opened and they are connected to dmz. (better than on
 
 One of the assumptions we made in our threat model is that the attacker has the capability to intercept network traffic and send malicious requests, but we assume that the attacker cannot compromise the actual machines.
 
-We also assume that the keys used in the cryptographic operations are secure and were securely distributed. @girao aqui elas sao distribuidas ou é CA stuff?
+We also assume that the keys used in the cryptographic operations are secure and were securely distributed.
 
 If private keys are compromised, the attacker can impersonate the entity that owns the key.
 
@@ -173,13 +173,13 @@ Once the mechanic performs tests and send the results to the car, a signature is
 
 With the implementation of the MotorIST project, we were able to achieve the protection goals and security challenges that were defined in the beginning of the project. The custom cryptographic library that we implemented, `cryptolib`, was a key part of the project, as it allowed us to protect, verify and unprotect the documents that are sent to the car. This library was implemented using the Python programming language, which allowed us to easily integrate it with the rest of the project.
 
-\[falar sobre o que pode ser melhorado\] @girao podes dar sugestões aqui?
-
 There are still some features and improvements that could be made to the project. For example, we could implement a web interface for the car owner to manage the car configurations, which would make it easier for the car owner to interact with the car by having a better UI/UX.
 
 Another improvement that could be made is to implement support for multiple entities, such as multiple car owners, mechanics and car manufacturers. This would allow the project to be more flexible and to better mimic and suit a real-world scenario.
 
-\[falar sobre o que pode ser melhorado\]
+In the certificate section, we should implement a short-lived certificate, which would be more secure than the current one, as it would have a shorter validity period. This would make it harder for an attacker to use a compromised certificate to impersonate an entity. Currently, we are using a CA that is valid for 10 years, and the certificates that are issued by the CA are valid for 1 year. Another improvement that could be made is to implement a certificate revocation list (CRL), which would allow the CA to revoke certificates that are compromised or no longer needed.
+
+In the infrastructure section, there is also room for improvement. For example, we could implement users that were not running as root, which would make the system more secure. We could also harden the server permissions, which would make it harder for an attacker to compromise the system.
 
 This project was a great opportunity to learn more about security and cryptography, and we are very happy with the results that we achieved. The infrastructure that we implemented was also a great learning experience, as we had to deal with firewalls, certificates, CAs and other security mechanisms for the first tine.
 
