@@ -15,6 +15,10 @@ in
         type = types.str;
         default = null;
       };
+      initDBFile = mkOption {
+        type = types.str;
+        default = null;
+      };
       environment = mkOption {
         type = types.attrs;
         default = { };
@@ -36,7 +40,9 @@ in
       "KEY_STORE" = "/var/key_store";
       "CAR_PORT" = "443";
       "CAR_URL" = "https://car1-web.motorist.lan";
-      "MANUFACTURER_URL" = "https://manufacturer.motorist.lan";
+      "MANUFACTURER_PORT" = "443";
+      "MANUFACTURER_URL" = "https://manufacturer-web.motorist.lan";
+      "DEFAULT_CONFIG_PATH" = "/var/project-src/car/default_config.json";
     };
 
     users.users.motorist = {

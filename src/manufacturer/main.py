@@ -12,7 +12,7 @@ PG_CONNSTRING = os.getenv(
     "PG_CONNSTRING",
     "host=localhost port=7654 dbname=motorist-manufacturer-db user=postgres password=password",
 )
-MANUF_PRIV_KEY = f"{Common.KEY_STORE}/manufacturer/key.priv"
+MANUF_PRIV_KEY = f"{Common.KEY_STORE}/manufacturer-web/key.priv"
 
 
 # Initialize the connection pool
@@ -26,7 +26,7 @@ pool = ConnectionPool(
 class Manufacturer:
     def __init__(self, id):
         self.id = id
-        self.key_store = f"{Common.KEY_STORE}/manufacturer"
+        self.key_store = f"{Common.KEY_STORE}/manufacturer-web"
 
 
 app = Flask(__name__)
@@ -99,6 +99,7 @@ def start():
 
     app.run(
         port=port,
+        host="0.0.0.0",
         ssl_context=(
             f"{manufacturer.key_store}/entity.crt",
             f"{manufacturer.key_store}/key.priv",

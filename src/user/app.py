@@ -354,7 +354,8 @@ class CarApp(App):
         ("c", "push_screen('config')", "Config Screen"),
     ]
 
-    CSS_PATH = "styles.css"
+    # CSS_PATH = "styles.css"
+    CSS_PATH = "/var/project-src/user/styles.css"
 
     def __init__(self, car_id, owner_id):
         super().__init__()

@@ -29,6 +29,12 @@ let
         ./modules/motorist-server.nix
         # Add more modules here
         {
+          boot.kernel.sysctl = {
+            # https://adamierymenko.com/privileged-ports/
+            # https://ar.al/2022/08/30/dear-linux-privileged-ports-must-die/
+            # https://www.linuxquestions.org/linux/articles/Technical/Why_can_only_root_listen_to_ports_below_1024
+            "net.ipv4.ip_unprivileged_port_start" = 0;
+          };
           networking.hosts = {
             # Databases don't need to access web servers:
             # Thus, despite web servers having two IP addresses, we compromise and say that web DNS names only point to their public IP address.
@@ -63,6 +69,15 @@ let
                 source = "${projectRoot}/key_store";
                 mountPoint = "/var/key_store-shared";
               }
+              {
+                proto = "9p";
+                tag = "project_src";
+                # Source path can be absolute or relative
+                # to /var/lib/microvms/$hostName
+                securityModel = "passthrough";
+                source = "${projectRoot}/src";
+                mountPoint = "/var/project-src";
+              }
             ];
             hypervisor = "qemu";
           };
@@ -83,17 +98,25 @@ let
 
           systemd.tmpfiles.rules = [
             "C+ /var/key_store - - - - /var/key_store-shared"
-            "Z /var/key_store 0770 motorist root -"
-            "z /var/key_store 0777 motorist root -"
+            "Z /var/key_store 0777 motorist root -"
             "z /var/key_store/ca/ca.crt 0777 motorist root -"
             "z /var/key_store/manufacturer/entity.crt 0777 motorist root -"
             "z /var/key_store/${config.networking.hostName}/key.priv 0600 motorist root -"
           ];
 
+          environment.sessionVariables = {
+            KEY_STORE = "/var/key_store";
+            CAR_PORT = "443";
+            CAR_URL = "https://car1-web.motorist.lan";
+            MANUFACTURER_PORT = "443";
+            MANUFACTURER_URL = "https://manufacturer-web.motorist.lan";
+          };
+
           microvm.socket = "/tmp/motorist-a17/${config.networking.hostName}.sock";
 
           environment.systemPackages = with pkgs; [
             htop
+            postgresql_16
           ];
         })
         {
@@ -158,7 +181,7 @@ in
       # interfaces.eth1.physicalConnections = [ (mkConnectionRev "internet" "*") ];
     };
   });
-  car1-db = makeHost {
+  car1-db = makeHost ({ rootDir, ... }: {
     imports = [ ./modules/postgresql.nix ];
     networking.hostName = "car1-db";
     microvm.interfaces = [
@@ -174,12 +197,15 @@ in
       networkConfig.DHCP = "no";
       address = [ "10.10.0.2/24" ];
     };
-    services.motorist-server.dbuser = "car1-web";
+    services.motorist-server = {
+      dbuser = "car1-web";
+      initDBFile = "${rootDir}/src/car/data/init.sql";
+    };
     topology.self = {
       #FIXME
       # interfaces.eth0.network = "car1-dmz";
     };
-  };
+  });
 
   manufacturer-web = makeHost ({ pkgs, ... }: {
     networking.hostName = "manufacturer-web";
@@ -216,11 +242,15 @@ in
     services.motorist-server = {
       enable = true;
       entrypoint = "${pkgs.mypkgs.motorist}/bin/manufacturer";
+      environment = {
+        # "PG_CONNSTRING" = "host=localhost port=5432 dbname=motorist-car-db user=postgres password=password";
+        "PG_CONNSTRING" = "host=manufacturer-db.motorist.lan port=5432 user=manufacturer-web dbname=db sslmode=verify-full sslcert=${keyStore}/manufacturer-web/entity.crt sslkey=${keyStore}/manufacturer-web/key.priv sslrootcert=${keyStore}/ca/ca.crt";
+      };
     };
   });
 
 
-  manufacturer-db = makeHost {
+  manufacturer-db = makeHost ({ rootDir, ... }: {
     imports = [ ./modules/postgresql.nix ];
     networking.hostName = "manufacturer-db";
     microvm.interfaces = [
@@ -236,14 +266,17 @@ in
       networkConfig.DHCP = "no";
       address = [ "10.20.0.2/24" ];
     };
-    services.motorist-server.dbuser = "manufacturer-web";
+    services.motorist-server = {
+      dbuser = "manufacturer-web";
+      initDBFile = "${rootDir}/src/manufacturer/data/init.sql";
+    };
     topology.self = {
       #FIXME
       # interfaces.eth0.network = "car1-dmz";
     };
-  };
+  });
 
-  user = makeHost {
+  user = makeHost ({ pkgs, ... }: {
     networking.hostName = "user";
     microvm.interfaces = [
       {
@@ -261,8 +294,9 @@ in
     # topology.self = {
     # interfaces.eth0.physicalConnections = [(mkConnection "internet" "*")];
     # };
-  };
-  mechanic = makeHost {
+    environment.systemPackages = [ pkgs.mypkgs.motorist ];
+  });
+  mechanic = makeHost ({ pkgs, ... }: {
     networking.hostName = "mechanic";
     microvm.interfaces = [
       {
@@ -277,9 +311,10 @@ in
       networkConfig.DHCP = "no";
       address = [ "193.135.1.4/24" ];
     };
+    environment.systemPackages = [ pkgs.mypkgs.motorist ];
     # topology.self = {
     # interfaces.eth0.physicalConnections = [(mkConnection "internet" "*")];
     # };
-  };
+  });
 
 }

@@ -1,7 +1,7 @@
 { lib, config, pkgs, ... }:
 let
   inherit (config.networking) hostName;
-  inherit (config.services.motorist-server) dbuser;
+  inherit (config.services.motorist-server) dbuser initDBFile;
 in
 
 {
@@ -16,7 +16,8 @@ in
       log_connections = true; # For debugging
       port = 5432;
       ssl = true; # might be "on"
-      ssl_ca_file = "/var/key_store/ca.crt";
+      # ssl_ca_file = "/var/key_store/ca/ca.crt";
+      ssl_ca_file = "/var/lib/postgresql/keys/ca.crt";
       ssl_cert_file = "/var/lib/postgresql/keys/entity.crt";
       ssl_key_file = "/var/lib/postgresql/keys/key.priv";
       listen_addresses = lib.mkForce "0.0.0.0";
@@ -43,11 +44,11 @@ in
       CREATE ROLE "${dbuser}" LOGIN; -- user/role
       CREATE DATABASE db;
       GRANT ALL PRIVILEGES ON DATABASE db TO "${dbuser}";
+    
+      \c db
+      ${builtins.readFile initDBFile}
+      
     '';
-    # CREATE ROLE ${dbuser} WITH LOGIN PASSWORD 'nixcloud' CREATEDB;
-    # CREATE DATABASE nixcloud;
-    # GRANT ALL PRIVILEGES ON DATABASE nixcloud TO nixcloud;
-    # GRANT motorist_db TO "${dbuser}"; -- Add the user to the role
   };
   topology.self.services.postgresql = {
     name = "PostgreSQL";
@@ -60,8 +61,10 @@ in
 
   # Copy keys to postgres directory and adjust permissions so postgres can read them
   systemd.tmpfiles.rules = [
-    "C+ /var/lib/postgresql/keys - - - - /var/key_store/${hostName}"
-    "z /var/lib/postgresql/keys 0550 postgres postgres -"
+    "C+ /var/lib/postgresql/keys - - - - /var/key_store-shared/${hostName}"
+    "C+ /var/lib/postgresql/keys/ca.crt - - - - /var/key_store-shared/ca/ca.crt"
+    "Z /var/lib/postgresql/keys 0550 postgres postgres -"
+    "z /var/lib/postgresql/keys/key.priv 0600 postgres postgres -"
   ];
   # Allow postgresql to read keys directory
   systemd.services.postgresql.serviceConfig.ReadWritePaths = [

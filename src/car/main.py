@@ -113,6 +113,7 @@ class Car:
                     )
                     firmware = cur.fetchone()
         except Exception as e:
+            print("ERR_G1")
             raise (e)
         # existent firmware was found
         if firmware:
@@ -156,6 +157,7 @@ class Car:
                     )
                     config = cur.fetchone()
         except Exception as e:
+            print("ERR_G2")
             raise (e)
         # existent config was found
         if config:
@@ -202,6 +204,7 @@ class Car:
                     )
                 conn.commit()
         except Exception as e:
+            print("ERR_G3")
             raise (e)
 
     def store_tests(self, tests, signature, mechanic_cert):
@@ -224,6 +227,7 @@ class Car:
                     )
                 conn.commit()
         except Exception as e:
+            print("ERR_G4")
             raise (e)
 
     def get_current_config(self):
@@ -252,6 +256,7 @@ class Car:
             return json.dumps(protected_car_config)
 
         except Exception as e:
+            print("ERR_G5")
             raise (e)
 
     def update_firmware(self, firmware, signature):
@@ -280,6 +285,7 @@ class Car:
 
                 print("Firmware Updated")
         except Exception as e:
+            print("ERR_G6")
             raise (e)
 
         return "Firmware Updated Successfully"
@@ -310,6 +316,7 @@ class Car:
             return json.dumps(protected_firmware)
 
         except Exception as e:
+            print("ERR_G7")
             raise (e)
 
     def get_all_and_verify_firmware(self):
@@ -340,6 +347,7 @@ class Car:
             return json.dumps(protected_firmwares)
 
         except Exception as e:
+            print("ERR_G8")
             raise (e)
 
     def get_latest_test(self):
@@ -373,6 +381,7 @@ class Car:
             return json.dumps(protected_tests)
 
         except Exception as e:
+            print("ERR_G9")
             raise (e)
 
     def get_all_and_verify_tests(self):
@@ -408,6 +417,7 @@ class Car:
             return json.dumps(protected_tests)
 
         except Exception as e:
+            print("ERR_G10")
             raise (e)
 
 
@@ -453,6 +463,7 @@ def run_tests():
         print("Tests", tests)
         return "Tests run successfully"
     except Exception as e:
+        print("ERR_G11")
         return f"Error: {e}"
 
 
@@ -495,6 +506,7 @@ def update_config():
         car.store_update(json.dumps(data["configuration"]))
 
     except Exception as e:
+        print("ERR_G12")
         return f"Error2: {e}"
 
     car.op_count += 1
@@ -524,6 +536,7 @@ def update_mechanic_config():
         return "Config Updated Sucessfully"
 
     except Exception as e:
+        print("ERR_G13")
         return f"Error: {e}"
 
 
@@ -677,7 +690,10 @@ def start():
     ssl_context.verify_mode = ssl.CERT_REQUIRED
 
     app.run(
-        port=port, ssl_context=ssl_context, request_handler=PeerCertWSGIRequestHandler
+        host="0.0.0.0",
+        port=port,
+        ssl_context=ssl_context,
+        request_handler=PeerCertWSGIRequestHandler,
     )
 
 

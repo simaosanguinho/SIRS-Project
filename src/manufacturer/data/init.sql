@@ -8,3 +8,5 @@ CREATE TABLE IF NOT EXISTS firmware_requests (
     signature TEXT NOT NULL,        -- signature of the firmware
     timestamp TIMESTAMP NOT NULL    -- Timestamp of the update
 );
+
+ALTER TABLE firmware_requests OWNER TO "manufacturer-web";

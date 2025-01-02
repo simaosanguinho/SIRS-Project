@@ -76,6 +76,9 @@ function bootstrap() {
   bridge_addiface brwww vmuser0
   bridge_addiface brwww vmmechanic0
   sudo ip address add dev brwww 193.135.1.254/24
+
+  # Enable IP Forwarding on the host
+  sudo sysctl net.ipv4.ip_forward=1
 }
 
 if [ "$1" == "cleanup" ]; then

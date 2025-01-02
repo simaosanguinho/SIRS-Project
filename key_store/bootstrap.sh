@@ -7,7 +7,7 @@ git clean -d -f -X ./
 ./init_ca.sh
 
 # Init servers
-servers=(manufacturer manufacturer-db car1-db car1-web)
+servers=(manufacturer-web manufacturer-db car1-db car1-web)
 
 for item in "${servers[@]}"; do
   ./gen_entity.sh $item

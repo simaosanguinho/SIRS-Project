@@ -201,7 +201,8 @@ class MechanicApp(App):
         ("c", "push_screen('config')", "Config Screen"),
     ]
 
-    CSS_PATH = "styles.css"
+    # CSS_PATH = "styles.css"
+    CSS_PATH = "/var/project-src/mechanic/styles.css"
 
     # encrypt the mechanic.key with the manufacturer public key
 

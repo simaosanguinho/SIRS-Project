@@ -29,3 +29,7 @@ CREATE TABLE IF NOT EXISTS mechanic_tests (
     timestamp TIMESTAMP NOT NULL,   -- Timestamp of the update
     mechanic_cert TEXT NOT NULL     -- Mechanic certificate
 );
+
+ALTER TABLE configurations OWNER TO "car1-web";
+ALTER TABLE firmwares OWNER TO "car1-web";
+ALTER TABLE mechanic_tests OWNER TO "car1-web";
