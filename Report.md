@@ -33,6 +33,7 @@ The communication with the car is done using a JSON document which will have the
 
 Due to the nature of the project, we had to make some assumptions to simplify the implementation of the project. These assumptions are:
 
+- The system only has one car, one mechanic, one manufacturer and two users (one that is the owner of the unique car and another that is not a car owner).
 - The car key corresponds to the key of the car owner.
 - The car battery always starts at 100%, and the battery level is reduced by 5% for each 10 configurations sent to the car.
 - The car has a default configuration that is set when the maintenance mode is activated.
@@ -50,7 +51,7 @@ To ensure that sensitive information is kept private and only accessible to auth
 
 When we were thinking of which algorithm to use, we were first thinking of using AES, but we decided to use ChaCha20Poly1305 because it is optimized for software performance, making it faster than AES without hardware support. It also a [great choice](https://ieeexplore.ieee.org/document/7927078) on IoT devices, and embedded systems, which is the case of the car.
 
-The ChaCha20-Poly1305 algorithm takes as input a 256-bit key and a 96-bit nonce to encrypt a plaintext. It is important to note that, to ensure true randomness, the nonce must be generated using a cryptographically secure random number generator. For this, we used the `token_bytes` method from the `secrets` module from Python, as it is the [documentation's recommendation](https://docs.python.org/3/library/secrets.html) for generating cryptographically secure random numbers.
+The ChaCha20-Poly1305 algorithm takes as input a 256-bit key and a 96-bit nonce to encrypt a plaintext. It is important to note that, to ensure true randomness, the nonce must be generated using a cryptographically secure random number generator. For this, we used the `token_bytes` method from the `secrets` module from Python, as it is the [documentation's recommendation](https://docs.python.org/3/library/secrets.html) for generating cryptographically secure random numbers. This random nonce will be essential as it prevents that different encryptions with the same data and the same key, results in different ciphertext values.
 
 ##### 2.2.1.2. Integrity
 
@@ -58,7 +59,7 @@ The ChaCha20-Poly1305 algorithm takes as input a 256-bit key and a 96-bit nonce 
 
 A CA representa o manufactiurer -->
 
-The integrity in our system is mainly ensured by the Certificate Authority (CA), that represents the manufacturer and that will delegate to each server and client a private key as well as their own certificate. This certificate apart from being signed by the CA, it gives out the email address of the entity that it belongs to and in case the entity is an user that owns a car, iit states which car they own, through the car id value. If the car wants to check that an incoming firmware update was in fact issued by the manufacturer, a certificate is sent alongside it and the car proceeds to see if the certifcate is valid and through the signatures in them. When a client wants to request an alteration in a car configuration, apartr from sending their certificate thats is used by the car to validate their entity, it also needs to send the car key, a symmetric key that belongs to the car owner (user) and that is exchanged to the car through a mutual tls channel once the first request is made, as the car returns the error `503`. Once the car has its key, and the opwner properly sends their certificate, the system can guarantee that only the owner can perform updates to the configuration, thus ensuring the system's integrity.
+The integrity in our system is mainly ensured by the Certificate Authority (CA), that represents the manufacturer and that will distribute to each server and client a private key as well as their own certificate. This certificate apart from being signed by the CA, it gives out the email address of the entity that it belongs to and in case the entity is an user that owns a car, it states which car they own, through the car id value. If the car wants to check that an incoming firmware update was in fact issued by the manufacturer, a certificate is sent alongside it and the car proceeds to see if the certifcate is valid and through the signatures in them. When a client wants to request an alteration in a car configuration, apart from sending their certificate that is used by the car to validate their entity and ownership, it also needs to send the car key, a symmetric key that belongs to the car owner (user) and that is exchanged to the car through a mutual tls channel once the first request is made, as the car returns the error `503`.  If, for any reason, the car losses its key, when the owner performs a request, they are alerted to that and obliged to send it again (and not) Once the car has its key, and the owner properly sends their certificate, the system can guarantee that only the owner can perform updates to the configuration, thus ensuring the system's integrity.
 
 ##### 2.2.1.3. Authenticity
 
@@ -85,9 +86,7 @@ An unprotected document is a JSON object with the following structure:
             "3": "7psi",
             "4": "1000psi"
         }
-    },
-   
-    "firmware": "2"
+    }
 
 }
 ```
@@ -101,10 +100,6 @@ Once the document is protected, it is transformed into a JSON object with the fo
     "configuration": {
         "nonce": "rh8vYjTDPfqVnpbU",
         "ciphertext": "Zms6TnhM0FB+e7Ci+K3UNmz2N04sN4nx9Wto7vRRV9n5kIlMHPb8S9EVXYVnEEHbWvq5DVIjFFkjtPj+1eK3DBIlp8nVbK4ukL99Ikq1qV3zBHOS3QwEF3GZj1M2mFJvIGV99qYn+91VRS4IlNFCmx8rFiSy0HNxbpuyGsPD1mNkN9Vj9DSh1NgdggY5wvUJlaM="
-    },
-    "firmware": {
-        "nonce": "rh8vYjTDPfqVnpbU",
-        "ciphertext": "P3t5WuC0YYkF4Mr+cUxzjm1Q7A=="
     }
 }
 ```
@@ -156,11 +151,13 @@ To ensure that the car configurations can only be seen by the car owner, we used
 
 ### 2.5.2. \[SR2: Integrity 1\] The car can only accept configurations sent by the car owner.
 
-ainda nao fizemos isto mas tenho ideias q é CA stuff
+<!-- ainda nao fizemos isto mas tenho ideias q é CA stuff -->
+
+The user in order to request for a configuration update, they need to send a certificate that is issued and properly signed by the trusted CA. With this certificate the car will be able to see if the requester is an user and that they are indeed the owner of the car, through the infoirmation that is contained inside the certificate.
 
 ### 2.5.3. \[SR3: Integrity 2\] The car firmware updates can only be sent by the car manufacturer.
 
-ainda nao fizemos isto mas tenho ideias q é CA stuff
+Every time the mechanic wants to update the firmware of the car, it request the manufacturer to emit a new firmware. The manufacturer creates a new firmware and send it alongside a signature that is created based on the firmware data. The mechanic recieves the response and forwards it directly to the car. Once it receives the new firmware the car will compare the the signature with the firmware data, using the manufacturer public key (contained in their certificate), ensuring that the update was certainly issued by ther manufacturer and only they can perform such action.
 
 ### 2.5.4. \[SR4: Authentication\] The car manufacture cannot deny having sent firmware updates.
 
