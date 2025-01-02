@@ -92,9 +92,16 @@ class Car:
         self.car_name = f"car{car_id}"
         self.key_store = f"{KEY_STORE}/{self.car_name}-web"
         self.car_key = None
-        config = None
+        self.initialized = False
+        self.default_config = default_config
         print(f"DEBUG: {self.key_store}")
+        if self.car_key:
+            self.complete_init()
+
+    def complete_init(self):
         # if there is a config in the database, use that
+        config = None
+
         try:
             with pool.connection() as conn:
                 with conn.cursor() as cur:
@@ -118,13 +125,9 @@ class Car:
             print("Config from DB", self.config)
         # no config found, use default
         else:
-            
-            with open(default_config, "r") as file:
+            with open(self.default_config, "r") as file:
                 self.config = json.load(file)
                 print("Default Config", self.config)
-                if not self.car_key:
-                    # dont save the config if the car key is not set
-                    return
                 config_protected = cryptolib.protect_lib(
                     # FIXME: dont use hardcoded key
                     self.config,
@@ -167,6 +170,7 @@ class Car:
             signature = response.json()["signature"]
             self.update_firmware(firmware, signature)
             print("Firmware from Manufacturer", firmware)
+        self.initialized = True
 
     def setConfig(self, config_path):
         with open(config_path, "r") as file:
@@ -264,7 +268,8 @@ class Car:
 
 @app.route("/")
 def root():
-    if not car.car_key: return "Not allowed without a key", 503
+    if not car.car_key:
+        return "Not allowed without a key", 503
     return "<h3>Welcome to the Car App!  </h3> Car ID: " + str(car.id)
 
 
@@ -273,15 +278,18 @@ def set_car_key():
     data = request.get_json()
     encrypted_car_key = data["key"]
     car.car_key = PKI.decrypt_data(encrypted_car_key, f"{car.key_store}/key.priv")
+    if not car.initialized:
+        car.complete_init()
     return "Car key set successfully"
-    
+
 
 @app.route("/maintenance-mode/<mode>")
 def maintenance_mode(mode):
     """if not car.is_user_owner("admin"):
     return "User not authorized to change maintenance mode" """
 
-    if not car.car_key: return "Not allowed without a key", 503
+    if not car.car_key:
+        return "Not allowed without a key", 503
     if mode == "on":
         car.maintenance_mode = True
         # set car config to default
@@ -295,7 +303,8 @@ def maintenance_mode(mode):
 
 @app.route("/update-config", methods=["POST"])
 def update_config():
-    if not car.car_key: return "Not allowed without a key", 503
+    if not car.car_key:
+        return "Not allowed without a key", 503
     data = request.get_json()
     print("Data Received", data)
     print("Type", type(data))
@@ -325,7 +334,8 @@ def update_config():
 
 @app.route("/get-config")
 def get_config():
-    if not car.car_key: return "Not allowed without a key", 503
+    if not car.car_key:
+        return "Not allowed without a key", 503
     try:
         config = car.get_current_config()
         return config
@@ -335,13 +345,15 @@ def get_config():
 
 @app.route("/check-battery")
 def check_battery():
-    if not car.car_key: return "Not allowed without a key", 503
+    if not car.car_key:
+        return "Not allowed without a key", 503
     return f"Battery Level: {car.battery_level} %"
 
 
 @app.route("/charge-battery")
 def charge_battery():
-    if not car.car_key: return "Not allowed without a key", 503
+    if not car.car_key:
+        return "Not allowed without a key", 503
     car.battery_level = 100
     car.op_count = 0
     return "Battery has been charged to 100%"
@@ -350,20 +362,23 @@ def charge_battery():
 # DEBUG ENDPOINTS
 @app.route("/debug/get-doc")
 def get_car_document():
-    if not car.car_key: return "Not allowed without a key", 503
+    if not car.car_key:
+        return "Not allowed without a key", 503
     return json.dumps(car.build_car_document(car.config))
 
 
 @app.route("/debug/whoami")
 def whoami():
-    if not car.car_key: return "Not allowed without a key", 503
+    if not car.car_key:
+        return "Not allowed without a key", 503
     return str(request.environ["peercert"])
 
 
 # TODO: Add endpoint to update firmware
 @app.route("/update-firmware", methods=["POST"])
 def update_firmware():
-    if not car.car_key: return "Not allowed without a key", 503
+    if not car.car_key:
+        return "Not allowed without a key", 503
     try:
         # check maintenance mode
         data = request.get_json()
