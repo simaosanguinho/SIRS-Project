@@ -133,6 +133,28 @@ In this screen they can choose over a variety of options, such as:
 
 ### Mechanic
 
+When the mechanic wants to use the application, they first see the home screen.
+
+![Home Screen](img/mechanicApp_home.png)
+
+In this screen they can choose over a variety of options, such as:
+- After specifying the car's id to interact with, the mechanic can update the car's firmware (assuming it is in maintenance mode). This will first ask the manufacturer to issue a new firmware and then the mechanic can apply it to the car.
+
+![Update Firmware](img/mechanicApp_update-menu.png)
+![Update Firmware](img/mechanicApp_update-output.png)
+
+- After specifying the car's id to interact with, the mechanic can perform tests on the car (assuming it is in maintenance mode). This will allow the mechanic to check if the car is in good condition.
+
+![Tests](img/mechanicApp_test-menu.png)
+![Tests](img/mechanicApp_test-output.png)
+
+- After specifying the car's id to interact with, the mechanic can update the car's configuration (assuming it is in maintenance mode). This will allow the mechanic to change the car's configuration *only* for testing purposes. This will not change the user's configuration.
+
+![Update Configuration](img/mechanicApp_update_config-menu.png)
+![Update Configuration](img/mechanicApp_update_config-menu1.png)
+![Update Configuration](img/mechanicApp_update_config-output.png)
+
+
 ### Manufacturer
 
 ### Car
