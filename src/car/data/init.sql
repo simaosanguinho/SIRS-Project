@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS configurations;
 DROP TABLE IF EXISTS firmwares;
+DROP TABLE IF EXISTS mechanic_tests;
 
 -- SQL Dump for 'configurations' table
 CREATE TABLE IF NOT EXISTS configurations (
@@ -15,5 +16,15 @@ CREATE TABLE IF NOT EXISTS firmwares (
     car_id INTEGER NOT NULL,        -- Foreign key for the car ID
     firmware VARCHAR(50) NOT NULL,   -- Firmware version
     signature TEXT NOT NULL,        -- signature of the firmware
+    timestamp TIMESTAMP NOT NULL    -- Timestamp of the update
+);
+
+
+-- SQL Dump for 'mechanic_tests' table
+CREATE TABLE IF NOT EXISTS mechanic_tests (
+    id SERIAL PRIMARY KEY,          -- Unique identifier for the update
+    car_id INTEGER NOT NULL,        -- Foreign key for the car ID
+    tests JSON NOT NULL,             -- Test details in JSON format
+    signature TEXT NOT NULL,        -- signature of the test
     timestamp TIMESTAMP NOT NULL    -- Timestamp of the update
 );

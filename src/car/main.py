@@ -210,6 +210,25 @@ class Car:
         except Exception as e:
             raise (e)
 
+    def store_tests(self, tests, signature):
+        try:
+            with pool.connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        INSERT INTO mechanic_tests (car_id, tests, signature, timestamp)
+                        VALUES (%(car_id)s, %(tests)s, %(signature)s, NOW());
+                        """,
+                        {
+                            "car_id": self.id,
+                            "tests": tests,
+                            "signature": signature,
+                        },
+                    )
+                conn.commit()
+        except Exception as e:
+            raise (e)
+
     def get_current_config(self):
         try:
             with pool.connection() as conn:
@@ -285,6 +304,26 @@ def set_car_key():
     if not car.initialized:
         car.complete_init()
     return "Car key set successfully"
+
+
+@app.route("/run-tests", methods=["POST"])
+def run_tests():
+    if not car.maintenance_mode:
+        return "Maintenance Mode is off", 504
+    data = request.get_json()
+    print("Data Received", data)
+    try:
+        tests = data["tests"]
+        signature = data["signature"]
+
+        # FIXME: VERIFY SIGNATURE??
+        print("Tests", tests)
+        print("Signature", signature)
+        car.store_tests(json.dumps(tests), signature)
+        print("Tests", tests)
+        return "Tests run successfully"
+    except Exception as e:
+        return f"Error: {e}"
 
 
 @app.route("/maintenance-mode/<mode>")

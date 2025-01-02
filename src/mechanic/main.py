@@ -66,15 +66,16 @@ class HomeScreen(Screen):
                 # convert to string
                 self.display_output(str(tests))
 
-                # build json with key tests and value tests
-
                 signature = cryptolib.sign_data(MECHANIC_PRIV_KEY, str(tests))
 
                 data = {"tests": tests, "signature": signature}
-
+                with open("mechanic_signature.txt", "w") as f:
+                    f.write(signature)
+                    f.write("\n")
+                    f.write(str(tests))
                 # send to car - TODO: hardcoded car id
                 # FIXME
-                car_url = f"https://127.0.0.1:{5001}"
+                car_url = f"https://127.0.0.1:{5000 + int(1)}"
                 response = req.post(f"{car_url}/run-tests", json=data)
                 self.display_output(response.text)
 
@@ -98,41 +99,6 @@ class HomeScreen(Screen):
     def display_output(self, message: str) -> None:
         """Display output to the user."""
         self.query_one("#output", Static).update(message)
-
-
-""" @app.route("/")
-def root():
-    return "<h3>Welcome to the Mechanic App!  </h3> Mechanic Id: " + str(self.mechanic_id)
-
-
-## ENDPOINTS
-
-# See the usre configuration - to show that even when he has the key he cannot see the user config
-
-# Change config of the car - to show that the mechanic can change
-# the config of the car (only when in maintenance mode)
-
-
-@app.route("/update-firmware")
-def update_firmware():
-    # fetch the firmware from manufacturer and send it to the car
-    response = req.get(f"{MANUFACTURER_URL}/get-firmware/{1}")
-    if response.status_code != 200:
-        return "Failed to fetch firmware"
-    print(response.json())
-
-    firmware = response.json()["firmware"]
-    signature = response.json()["signature"]
-    # DOES THE MECHANIC NEED TO CHECK THE SIGNATURE?
-    if not PKI.verify_signature(Common.MANUFACTURER_CERT, firmware, signature):
-        return "Invalid signature"
-
-    # send the firmware to the car
-    response = req.post(f"{car_url}/update-firmware", json=response.json())
-    print(response.text)
-
-    return response.text
- """
 
 
 class UpdateConfigScreen(Screen):
@@ -299,13 +265,15 @@ def tui():
     # set different port for mechanic
     # car_url = f"https://127.0.0.1:{5000 + int(1)}"
     MANUFACTURER_URL = f"https://127.0.0.1:{5200 + int(1)}"
-    MechanicApp(mechanic_id, MANUFACTURER_URL).run()
+
     MECHANIC_PRIV_KEY = os.getenv(
         "MECHANIC_PRIV_KEY", f"{Common.KEY_STORE}/{MECHANIC_EMAIL}/key.priv"
     )
     if not os.path.isfile(MECHANIC_PRIV_KEY):
         print(f"FATAL: mechanic priv key does not exist at {MECHANIC_PRIV_KEY}")
         sys.exit(1)
+
+    MechanicApp(mechanic_id, MANUFACTURER_URL).run()
 
 
 if __name__ == "__main__":
