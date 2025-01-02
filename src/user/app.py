@@ -143,6 +143,7 @@ class HomeScreen(Screen):
 
             elif button_id == "go-config":
                 # Navigate to the UpdateConfigScreen
+                self.display_output("")
                 self.app.push_screen(UpdateConfigScreen())
 
         except Exception as e:
