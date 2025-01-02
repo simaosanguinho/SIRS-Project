@@ -59,10 +59,12 @@ The virtual machines are created using [MicroVM](https://github.com/astro/microv
 ### Machine configurations
 
 #### Machine 1 (Car Database)
+This machine runs the database service, which is responsible for storing the data of the cars. The database is a PostgreSQL database.
 
 #### Machine 2 (Car Web)
 
 #### Machine 3 (Manufacturer Database)
+This machine runs the database service, which is responsible for storing the data of the manufacturers. The database is a PostgreSQL database.
 
 #### Machine 4 (Manufacturer Web)
 
