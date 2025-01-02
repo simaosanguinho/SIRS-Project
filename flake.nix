@@ -105,6 +105,7 @@
                export PYTHONPATH=$(pwd)/src:$PYTHONPATH
                export PROJECT_ROOT=$PWD
                echo $PWD > .pwd
+               mkdir -p /tmp/motorist-a17
             '';
 
           };
@@ -145,6 +146,10 @@
       flake = {
         inherit lib;
         nixosConfigurations = import ./infra/hosts.nix { inherit inputs lib self; };
+
+        overlays = {
+          pkgs-sets-mypkgs = final: _prev: { mypkgs = self.outputs.packages.${final.system}; };
+        };
         # The usual flake attributes can be defined here, including system-
         # agnostic ones like nixosModule and system-enumerating ones, although
         # those are more easily expressed in perSystem.

@@ -1,6 +1,5 @@
 from flask import Flask, jsonify
 import os
-import sys
 import time
 from datetime import datetime
 import cryptolib
@@ -94,7 +93,7 @@ def get_history(car_id):
 
 def start():
     global manufacturer
-    manufacturer = Manufacturer(sys.argv[1])
+    manufacturer = Manufacturer("1")
     # set different port for manufacturer
     port = Common.MANUFACTURER_PORT
 

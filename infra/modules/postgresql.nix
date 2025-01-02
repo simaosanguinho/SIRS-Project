@@ -1,14 +1,15 @@
 { lib, config, pkgs, ... }:
 let
   inherit (config.networking) hostName;
+  inherit (config.services.motorist-server) dbuser;
 in
 
 {
   services.postgresql = {
     enable = true;
-    ensureDatabases = [ "dbcar" ];
+    ensureDatabases = [ "db" ];
     ensureUsers = [{
-      name = "car1-web";
+      name = "${dbuser}";
     }];
     enableTCPIP = true;
     settings = {
@@ -39,14 +40,14 @@ in
       hostssl all    all     all           cert
     '';
     initialScript = pkgs.writeText "backend-initScript" ''
-      CREATE ROLE "car1-web" LOGIN; -- user/role
-      CREATE DATABASE dbcar;
-      GRANT ALL PRIVILEGES ON DATABASE dbcar TO "car1-web";
+      CREATE ROLE "${dbuser}" LOGIN; -- user/role
+      CREATE DATABASE db;
+      GRANT ALL PRIVILEGES ON DATABASE db TO "${dbuser}";
     '';
-    # CREATE ROLE car1-web WITH LOGIN PASSWORD 'nixcloud' CREATEDB;
+    # CREATE ROLE ${dbuser} WITH LOGIN PASSWORD 'nixcloud' CREATEDB;
     # CREATE DATABASE nixcloud;
     # GRANT ALL PRIVILEGES ON DATABASE nixcloud TO nixcloud;
-    # GRANT motorist_db TO "car1-web"; -- Add the user to the role
+    # GRANT motorist_db TO "${dbuser}"; -- Add the user to the role
   };
   topology.self.services.postgresql = {
     name = "PostgreSQL";
