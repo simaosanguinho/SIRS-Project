@@ -6,17 +6,17 @@ build-backend = "setuptools.build_meta"
 name = "motorist"
 version = "0.0.1"
 dependencies = [
-    "requests",
-    "rich",
-    "cryptography",
-    "click",
+    # Dependencies are specified in flake.nix (look for `pythonDeps`)
     'importlib-metadata; python_version<"3.10"',
-    'flask',
-    'textual',
-    'psycopg',
-    'psycopg-binary',
-    'psycopg-pool',
 ]
+
+[project.scripts]
+# my-client = "my_package.my_module:main_cli"
+cryptolib = "cryptolib:cli"
+mechanic = "mechanic:tui"
+user = "user:tui"
+manufacturer = "manufacturer:start"
+car = "car:start"
 
 [tool.setuptools.packages.find]
 where = ["src"]

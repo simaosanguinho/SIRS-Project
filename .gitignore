@@ -157,3 +157,4 @@ basic.json
 .pwd
 keys/*
 car.key
+key_store/ronaldo@user.motorist.lan/car1_symmetric.key

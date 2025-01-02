@@ -20,6 +20,7 @@ PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
 KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
 MANUFACTURER_CERT = PKI.load_certificate(f"{KEY_STORE}/manufacturer.crt")
 ROOT_CA_PATH = f"{KEY_STORE}/ca.crt"
+MANUFACTURER_URL = f"https://127.0.0.1:{5200 + int(1)}"
 
 app = Flask(__name__)
 
@@ -163,7 +164,7 @@ class Car:
 
         else:
             # ask for a new firmware from the manufacturer
-            response = requests.get(f"{manufacturer_url}/get-firmware/{1}")
+            response = requests.get(f"{MANUFACTURER_URL}/get-firmware/{1}")
             if response.status_code != 200:
                 print("Failed to fetch firmware")
             print(response.json())
@@ -425,9 +426,8 @@ if not default_config_path:
     raise ValueError("DEFAULT_CONFIG_PATH environment variable not set")
 
 
-if __name__ == "__main__":
-    manufacturer_url = f"http://127.0.0.1:{5200 + int(1)}"
-
+def start():
+    global car
     car = Car(default_config_path, sys.argv[1], sys.argv[2])
     # set different port for car based on id
     port = 5000 + int(sys.argv[1])
@@ -452,3 +452,7 @@ if __name__ == "__main__":
     app.run(
         port=port, ssl_context=ssl_context, request_handler=PeerCertWSGIRequestHandler
     )
+
+
+if __name__ == "__main__":
+    start()

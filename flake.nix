@@ -57,6 +57,23 @@
         , inputs'
         , ...
         }:
+        let
+          pythonDeps = python-pkgs: with python-pkgs; [
+            click
+            cryptography
+            psycopg
+            textual
+            textual-dev # For developing Textual apps
+            rich # For development/pretty print
+            flask
+            psycopg-pool
+            requests
+            pyopenssl
+            werkzeug
+            setuptools
+          ];
+        in
+
         {
           # Per-system attributes can be defined here. The self' and inputs'
           # module parameters provide easy access to attributes of the same
@@ -68,22 +85,11 @@
             ./infra/topology.nix
           ];
 
+          packages = import ./packages.nix { inherit pkgs lib self pythonDeps; };
           devShells.default = pkgs.mkShell {
             packages = [
               # Dev
-              (pkgs.python3.withPackages (python-pkgs: with python-pkgs; [
-                click
-                cryptography
-                psycopg
-                textual
-                textual-dev # For developing Textual apps
-                rich # For development/pretty print
-                flask
-                psycopg-pool
-                requests
-                pyopenssl
-                werkzeug
-              ]))
+              (pkgs.python3.withPackages pythonDeps)
               pkgs.openssl
               pkgs.step-ca
               pkgs.step-cli

@@ -7,6 +7,7 @@ import json
 import requests
 import cryptolib
 import os
+import sys
 
 # from textual.widgets import Input
 
@@ -120,7 +121,7 @@ def root():
 @app.route("/update-firmware")
 def update_firmware():
     # fetch the firmware from manufacturer and send it to the car
-    response = requests.get(f"{manufacturer_url}/get-firmware/{1}")
+    response = requests.get(f"{MANUFACTURER_URL}/get-firmware/{1}")
     if response.status_code != 200:
         return "Failed to fetch firmware"
     print(response.json())
@@ -220,7 +221,7 @@ class UpdateConfigScreen(Screen):
 
 def update_firmware(car_id):
     # fetch the firmware from manufacturer and send it to the car
-    response = requests.get(f"{manufacturer_url}/get-firmware/{1}")
+    response = requests.get(f"{MANUFACTURER_URL}/get-firmware/{1}")
     if response.status_code != 200:
         return "Failed to fetch firmware"
     print(response.json())
@@ -255,10 +256,10 @@ class MechanicApp(App):
 
     # encrypt the mechanic.key with the manufacturer public key
 
-    def __init__(self, mechanic_id, manufacturer_url):
+    def __init__(self, mechanic_id, MANUFACTURER_URL):
         super().__init__()
         self.mechanic_id = mechanic_id
-        self.manufacturer_url = manufacturer_url
+        self.MANUFACTURER_URL = MANUFACTURER_URL
 
     def on_mount(self) -> None:
         self.push_screen("home")
@@ -286,11 +287,10 @@ arctic_theme = Theme(
 )
 
 
-if __name__ == "__main__":
-    import sys
-
+def tui():
+    global MANUFACTURER_URL
     if len(sys.argv) < 2:
-        print("Usage: python3 app.py <mechanic_email>")
+        print(f"Usage: {sys.argv[0]} <mechanic_email>")
         sys.exit(1)
 
     mechanic_id = sys.argv[1]
@@ -298,5 +298,9 @@ if __name__ == "__main__":
 
     # set different port for mechanic
     # car_url = f"http://127.0.0.1:{5000 + int(1)}"
-    manufacturer_url = f"http://127.0.0.1:{5200 + int(1)}"
-    MechanicApp(mechanic_id, manufacturer_url).run()
+    MANUFACTURER_URL = f"https://127.0.0.1:{5200 + int(1)}"
+    MechanicApp(mechanic_id, MANUFACTURER_URL).run()
+
+
+if __name__ == "__main__":
+    tui()

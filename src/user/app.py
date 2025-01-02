@@ -9,6 +9,7 @@ import cryptolib
 import json
 import os
 from cryptolib import PKI
+import sys
 
 
 PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
@@ -381,12 +382,11 @@ arctic_theme = Theme(
     },
 )
 
-if __name__ == "__main__":
-    import sys
 
+def tui():
     # Parse command-line arguments
     if len(sys.argv) != 3:
-        print("Usage: python3 app.py <car_id> <owner_id>")
+        print(f"Usage: {sys.argv[0]} <car_id> <owner_id>")
         sys.exit(1)
 
     car_id = sys.argv[1]
@@ -397,3 +397,7 @@ if __name__ == "__main__":
 
     # Run the app
     CarApp(car_id, owner_id, flask_url).run()
+
+
+if __name__ == "__main__":
+    tui()

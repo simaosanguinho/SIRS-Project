@@ -94,7 +94,7 @@ def get_history(car_id):
     return jsonify(data)
 
 
-if __name__ == "__main__":
+def start():
     global manufacturer
     manufacturer = Manufacturer(sys.argv[1])
     # set different port for manufacturer
