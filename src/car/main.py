@@ -83,7 +83,9 @@ class Entity:
 class Car:
     def __init__(self, default_config, car_id, owner_id=None):
         self.maintenance_mode = False
+        self.deafult_config = default_config
         self.config = {}
+        self.mechanic_config = {}
         self.firmware = {}
         self.id = car_id
         self.user_id = owner_id
@@ -293,8 +295,12 @@ def maintenance_mode(mode):
     if mode == "on":
         car.maintenance_mode = True
         # set car config to default
-        car.setConfig(default_config_path)
+        with open(car.default_config, "r") as file:
+            car.mechanic_config = json.load(file)
+        print("Default Config", car.mechanic_config)
+
     elif mode == "off":
+        car.mechanic_config = {}
         car.maintenance_mode = False
     else:
         return "Invalid mode"
@@ -330,6 +336,29 @@ def update_config():
         car.battery_level -= 5
 
     return "Config Updated Sucessfully"
+
+
+@app.route("/update-mechanic-config", methods=["POST"])
+def update_mechanic_config():
+    if not car.maintenance_mode:
+        return "Maintenance Mode is off", 504
+    data = request.get_json()
+    print("Data Received", data)
+    print("Type", type(data))
+
+    try:
+        config = data["configuration"]
+        car.mechanic_config = config
+
+    except Exception as e:
+        return f"Error: {e}"
+
+
+@app.route("/get-mechanic-config")
+def get_mechanic_config():
+    if not car.maintenance_mode:
+        return "Maintenance Mode is off", 504
+    return json.dumps(car.mechanic_config)
 
 
 @app.route("/get-config")
