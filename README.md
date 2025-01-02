@@ -127,13 +127,11 @@ This concludes the demonstration.
 
 ### Versioning
 
-We use [SemVer](http://semver.org/) for versioning.  
+We use [Git](https://git-scm.com/) for versioning. For the versions available, see the [tags on this repository](https://github.com/tecnico-sec/A17-MotorIST)
 
 ### License
 
-This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.txt) for details.
-
-*(switch to another license, or no license, as you see fit)*
+This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE) for details.
 
 ----
 END OF README
