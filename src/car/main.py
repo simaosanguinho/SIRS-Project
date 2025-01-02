@@ -3,13 +3,15 @@ import json
 import os
 import cryptolib
 from cryptolib import PKI
-import requests
 from psycopg_pool import ConnectionPool
 import sys
 from enum import Enum
+from common import Common
 
 import werkzeug.serving
 import ssl
+
+req = Common.get_tls_session()
 
 # Database connection parameters
 PG_CONNSTRING = os.getenv(
@@ -164,7 +166,7 @@ class Car:
 
         else:
             # ask for a new firmware from the manufacturer
-            response = requests.get(f"{MANUFACTURER_URL}/get-firmware/{1}")
+            response = req.get(f"{MANUFACTURER_URL}/get-firmware/{1}")
             if response.status_code != 200:
                 print("Failed to fetch firmware")
             print(response.json())
@@ -398,8 +400,6 @@ def get_car_document():
 
 @app.route("/debug/whoami")
 def whoami():
-    if not car.car_key:
-        return "Not allowed without a key", 503
     return str(request.environ["peercert"])
 
 

@@ -3,22 +3,18 @@ from textual.widgets import Footer, Button, Static, Label, Input
 from textual.containers import Vertical, Container, Horizontal
 from textual.screen import Screen
 from textual.theme import Theme
+from common import Common
 import json
-import requests
 import cryptolib
 import os
 import sys
 
 # from textual.widgets import Input
 
-PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
-KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
-MANUFACTURER_CERT_PATH = f"{KEY_STORE}/manufacturer.crt"
-MANUFACTURER_CERT = cryptolib.PKI.load_certificate(MANUFACTURER_CERT_PATH)
-# TODO: HARDCODED????#MECHANIC_PRIV_KEY = f"{KEY_STORE}/f{mechanic_email}/key.priv"
+# TODO: HARDCODED????#MECHANIC_PRIV_KEY = f"{KEY_STORE}/f{MECHANIC_EMAIL}/key.priv"
 # USER_MOTORIST = os.getenv("USER_MOTORIST", "ronaldo@user.motorist.lan")
-MECHANIC_PRIV_KEY = os.getenv("MECHANIC_PRIV_KEY", f"{KEY_STORE}/mechanic/key.priv")
-ROOT_CA_PATH = f"{KEY_STORE}/ca.crt"
+
+req = Common.get_tls_session()
 
 
 class HomeScreen(Screen):
@@ -57,7 +53,7 @@ class HomeScreen(Screen):
         """Handle button events and send appropriate requests."""
         button_id = event.button.id
         # app = self.app  # Get reference to the main app instance
-        app = self.app
+        # app = self.app
 
         try:
             if button_id == "tests":
@@ -77,10 +73,9 @@ class HomeScreen(Screen):
                 data = {"tests": tests, "signature": signature}
 
                 # send to car - TODO: hardcoded car id
+                # FIXME
                 car_url = f"https://127.0.0.1:{5001}"
-                response = requests.post(
-                    f"{car_url}/run-tests", json=data, cert=(f"{app.key_store}/")
-                )
+                response = req.post(f"{car_url}/run-tests", json=data)
                 self.display_output(response.text)
 
             elif button_id == "update-firmware":
@@ -121,7 +116,7 @@ def root():
 @app.route("/update-firmware")
 def update_firmware():
     # fetch the firmware from manufacturer and send it to the car
-    response = requests.get(f"{MANUFACTURER_URL}/get-firmware/{1}")
+    response = req.get(f"{MANUFACTURER_URL}/get-firmware/{1}")
     if response.status_code != 200:
         return "Failed to fetch firmware"
     print(response.json())
@@ -129,11 +124,11 @@ def update_firmware():
     firmware = response.json()["firmware"]
     signature = response.json()["signature"]
     # DOES THE MECHANIC NEED TO CHECK THE SIGNATURE?
-    if not PKI.verify_signature(MANUFACTURER_CERT, firmware, signature):
+    if not PKI.verify_signature(Common.MANUFACTURER_CERT, firmware, signature):
         return "Invalid signature"
 
     # send the firmware to the car
-    response = requests.post(f"{car_url}/update-firmware", json=response.json())
+    response = req.post(f"{car_url}/update-firmware", json=response.json())
     print(response.text)
 
     return response.text
@@ -170,7 +165,7 @@ class UpdateConfigScreen(Screen):
         app = self.app  # Get reference to the main app instance
         try:
             # Fetch current configuration from Flask API
-            response = requests.get(f"{app.flask_url}/get-mechanic-config")
+            response = req.get(f"{app.flask_url}/get-mechanic-config")
             if response.status_code == 200:
                 car_unprotected_doc = response.json()
                 # Assuming the config is returned as a dictionary
@@ -201,7 +196,7 @@ class UpdateConfigScreen(Screen):
                         "configuration": new_config,
                     }
 
-                    response = requests.post(
+                    response = req.post(
                         f"{app.flask_url}/update-mechanic-config",
                         json=car_doc_unprotected,
                     )
@@ -221,7 +216,7 @@ class UpdateConfigScreen(Screen):
 
 def update_firmware(car_id):
     # fetch the firmware from manufacturer and send it to the car
-    response = requests.get(f"{MANUFACTURER_URL}/get-firmware/{1}")
+    response = req.get(f"{MANUFACTURER_URL}/get-firmware/{1}")
     if response.status_code != 200:
         return "Failed to fetch firmware"
     print(response.json())
@@ -229,13 +224,15 @@ def update_firmware(car_id):
     firmware = response.json()["firmware"]
     signature = response.json()["signature"]
     # DOES THE MECHANIC NEED TO CHECK THE SIGNATURE?
-    if not cryptolib.PKI.verify_signature(MANUFACTURER_CERT, firmware, signature):
+    if not cryptolib.PKI.verify_signature(
+        Common.MANUFACTURER_CERT, firmware, signature
+    ):
         return "Invalid signature"
 
     # send the firmware to the car
     car_url = f"https://127.0.0.1:{5000 + int(car_id)}"
     try:
-        response = requests.post(f"{car_url}/update-firmware", json=response.json())
+        response = req.post(f"{car_url}/update-firmware", json=response.json())
     except Exception:
         return f"Failed to establish connection with car {car_id}"
     print(response.text)
@@ -289,18 +286,22 @@ arctic_theme = Theme(
 
 def tui():
     global MANUFACTURER_URL
-    global mechanic_email
+    global MECHANIC_EMAIL
+    global MECHANIC_PRIV_KEY
     if len(sys.argv) < 2:
-        print(f"Usage: {sys.argv[0]} <mechanic_email>")
+        print(f"Usage: {sys.argv[0]} <MECHANIC_EMAIL>")
         sys.exit(1)
 
     mechanic_id = sys.argv[1]
-    mechanic_email = sys.argv[1]
+    MECHANIC_EMAIL = sys.argv[1]
 
     # set different port for mechanic
     # car_url = f"https://127.0.0.1:{5000 + int(1)}"
     MANUFACTURER_URL = f"https://127.0.0.1:{5200 + int(1)}"
     MechanicApp(mechanic_id, MANUFACTURER_URL).run()
+    MECHANIC_PRIV_KEY = os.getenv(
+        "MECHANIC_PRIV_KEY", f"{Common.KEY_STORE}/{MECHANIC_EMAIL}/key.priv"
+    )
 
 
 if __name__ == "__main__":

@@ -4,18 +4,22 @@ from textual.containers import Horizontal, Vertical, Container
 from textual.screen import Screen
 from textual.theme import Theme
 from textual.widgets import Input
-import requests
 import cryptolib
 import json
 import os
 from cryptolib import PKI
+from common import Common
 import sys
 
 
-PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
-KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
+# PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
+# KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
+# ROOT_CA_PATH = f"{KEY_STORE}/ca.crt"
+
 USER_MOTORIST = os.getenv("USER_MOTORIST", "ronaldo@user.motorist.lan")
-ROOT_CA_PATH = f"{KEY_STORE}/ca.crt"
+
+# The user always performs mutual TLS (mTLS) requests.
+req = Common.get_mutual_tls_session(USER_MOTORIST)
 
 
 class HomeScreen(Screen):
@@ -66,125 +70,68 @@ class HomeScreen(Screen):
 
         try:
             if button_id == "maintenance-on":
-                response = requests.get(
-                    f"{app.flask_url}/maintenance-mode/on",
-                    cert=(f"{app.key_store}/entity.crt", f"{app.key_store}/key.priv"),
-                    verify=f"{ROOT_CA_PATH}",
-                )
+                response = req.get(f"{app.flask_url}/maintenance-mode/on")
                 if response.status_code == 503:
-                    requests.post(
+                    req.post(
                         f"{app.flask_url}/set-car-key",
                         json={"key": app.encrypted_car_key},
-                        cert=(
-                            f"{app.key_store}/entity.crt",
-                            f"{app.key_store}/key.priv",
-                        ),
-                        verify=f"{ROOT_CA_PATH}",
                     )
-                    response = requests.get(
+                    response = req.get(
                         f"{app.flask_url}/maintenance-mode/on",
-                        cert=(
-                            f"{app.key_store}/entity.crt",
-                            f"{app.key_store}/key.priv",
-                        ),
-                        verify=f"{ROOT_CA_PATH}",
                     )
                 self.display_output(response.text)
 
             elif button_id == "maintenance-off":
-                response = requests.get(
+                response = req.get(
                     f"{app.flask_url}/maintenance-mode/off",
-                    cert=(f"{app.key_store}/entity.crt", f"{app.key_store}/key.priv"),
-                    verify=f"{ROOT_CA_PATH}",
                 )
                 if response.status_code == 503:
-                    requests.post(
+                    req.post(
                         f"{app.flask_url}/set-car-key",
                         json={"key": app.encrypted_car_key},
-                        cert=(
-                            f"{app.key_store}/entity.crt",
-                            f"{app.key_store}/key.priv",
-                        ),
-                        verify=f"{ROOT_CA_PATH}",
                     )
-                    response = requests.get(f"{app.flask_url}/maintenance-mode/off")
+                    response = req.get(f"{app.flask_url}/maintenance-mode/off")
                 self.display_output(response.text)
 
             elif button_id == "check-battery":
-                response = requests.get(
+                response = req.get(
                     f"{app.flask_url}/check-battery",
-                    cert=(f"{app.key_store}/entity.crt", f"{app.key_store}/key.priv"),
-                    verify=f"{ROOT_CA_PATH}",
                 )
                 if response.status_code == 503:
-                    requests.post(
+                    req.post(
                         f"{app.flask_url}/set-car-key",
                         json={"key": app.encrypted_car_key},
-                        cert=(
-                            f"{app.key_store}/entity.crt",
-                            f"{app.key_store}/key.priv",
-                        ),
-                        verify=f"{ROOT_CA_PATH}",
                     )
-                    response = requests.get(
+                    response = req.get(
                         f"{app.flask_url}/check-battery",
-                        cert=(
-                            f"{app.key_store}/entity.crt",
-                            f"{app.key_store}/key.priv",
-                        ),
-                        verify=f"{ROOT_CA_PATH}",
                     )
                 self.display_output(response.text)
 
             elif button_id == "charge-battery":
-                response = requests.get(
+                response = req.get(
                     f"{app.flask_url}/charge-battery",
-                    cert=(f"{app.key_store}/entity.crt", f"{app.key_store}/key.priv"),
-                    verify=f"{ROOT_CA_PATH}",
                 )
                 if response.status_code == 503:
-                    requests.post(
+                    req.post(
                         f"{app.flask_url}/set-car-key",
                         json={"key": app.encrypted_car_key},
-                        cert=(
-                            f"{app.key_store}/entity.crt",
-                            f"{app.key_store}/key.priv",
-                        ),
-                        verify=f"{ROOT_CA_PATH}",
                     )
-                    response = requests.get(
+                    response = req.get(
                         f"{app.flask_url}/charge-battery",
-                        cert=(
-                            f"{app.key_store}/entity.crt",
-                            f"{app.key_store}/key.priv",
-                        ),
-                        verify=f"{ROOT_CA_PATH}",
                     )
                 self.display_output(response.text)
 
             elif button_id == "get-config":
-                response = requests.get(
+                response = req.get(
                     f"{app.flask_url}/get-config",
-                    cert=(f"{app.key_store}/entity.crt", f"{app.key_store}/key.priv"),
-                    verify=f"{ROOT_CA_PATH}",
                 )
                 if response.status_code == 503:
-                    requests.post(
+                    req.post(
                         f"{app.flask_url}/set-car-key",
                         json={"key": app.encrypted_car_key},
-                        cert=(
-                            f"{app.key_store}/entity.crt",
-                            f"{app.key_store}/key.priv",
-                        ),
-                        verify=f"{ROOT_CA_PATH}",
                     )
-                    response = requests.get(
+                    response = req.get(
                         f"{app.flask_url}/get-config",
-                        cert=(
-                            f"{app.key_store}/entity.crt",
-                            f"{app.key_store}/key.priv",
-                        ),
-                        verify=f"{ROOT_CA_PATH}",
                     )
                 car_unprotected_doc = cryptolib.unprotect_lib(
                     response.json(), f"{app.key_store}/car.key", ["configuration"]
@@ -239,22 +186,16 @@ class UpdateConfigScreen(Screen):
         app = self.app  # Get reference to the main app instance
         try:
             # Fetch current configuration from Flask API
-            response = requests.get(
+            response = req.get(
                 f"{app.flask_url}/get-config",
-                cert=(f"{app.key_store}/entity.crt", f"{app.key_store}/key.priv"),
-                verify=f"{ROOT_CA_PATH}",
             )
             if response.status_code == 503:
-                requests.post(
+                req.post(
                     f"{app.flask_url}/set-car-key",
                     json={"key": app.encrypted_car_key},
-                    cert=(f"{app.key_store}/entity.crt", f"{app.key_store}/key.priv"),
-                    verify=f"{ROOT_CA_PATH}",
                 )
-                response = requests.get(
+                response = req.get(
                     f"{app.flask_url}/get-config",
-                    cert=(f"{app.key_store}/entity.crt", f"{app.key_store}/key.priv"),
-                    verify=f"{ROOT_CA_PATH}",
                 )
             if response.status_code == 200:
                 car_unprotected_doc = cryptolib.unprotect_lib(
@@ -294,33 +235,18 @@ class UpdateConfigScreen(Screen):
                         ["configuration"],
                     )
 
-                    response = requests.post(
+                    response = req.post(
                         f"{app.flask_url}/update-config",
                         json=car_doc_protected,
-                        cert=(
-                            f"{app.key_store}/entity.crt",
-                            f"{app.key_store}/key.priv",
-                        ),
-                        verify=f"{ROOT_CA_PATH}",
                     )
                     if response.status_code == 503:
-                        requests.post(
+                        req.post(
                             f"{app.flask_url}/set-car-key",
                             json={"key": app.encrypted_car_key},
-                            cert=(
-                                f"{app.key_store}/entity.crt",
-                                f"{app.key_store}/key.priv",
-                            ),
-                            verify=f"{ROOT_CA_PATH}",
                         )
-                        response = requests.post(
+                        response = req.post(
                             f"{app.flask_url}/update-config",
                             json=car_doc_protected,
-                            cert=(
-                                f"{app.key_store}/entity.crt",
-                                f"{app.key_store}/key.priv",
-                            ),
-                            verify=f"{ROOT_CA_PATH}",
                         )
                     self.display_output(response.text)
                 else:
@@ -349,7 +275,7 @@ class CarApp(App):
         self.car_id = car_id
         self.owner_id = owner_id
         self.flask_url = flask_url
-        self.key_store = f"{KEY_STORE}/{USER_MOTORIST}"
+        self.key_store = f"{Common.KEY_STORE}/{USER_MOTORIST}"
 
         # encrypt the car.key with the car public key
         self.encrypted_car_key = PKI.encrypt_data(
