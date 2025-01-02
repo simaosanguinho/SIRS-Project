@@ -171,19 +171,13 @@ The endpoints are the ones that were previously mentioned in the Mechanic and Ma
 
 The only endpoint that is not mentioned is the `/set-car-key` endpoint, that allows the car owner to share the car's key (a shared secret that should only be known by the car and the owner) with the car. This is done by calling the endpoint with the car's key, encrypted with the car's public key, as a parameter. This way, the car can decrypt the key and use it to decrypt the configuration updates that the owner sends and retrieves from the car.
 
-It is important to note that the car has a authorization mechanism that only allows actors to interact with certain endpoints if they have the correct permissions (we use the concept of roles here). 
+It is important to note that the car has a authorization mechanism that only allows actors to interact with certain endpoints if they have the correct permissions (we use the concept of roles here). For example, if we try to interact with the car's configuration without being the owner, we will get the message that we see in the next image. This verification is done by checking the CA certificate that comes from a trusted CA of the person who is calling the endpoint, and checking the role attribute and also the attribute that says which car that actor owns. If the actor doesn't have the correct permissions, the car will not allow the interaction.
 
+![User Not Authorized](img/securityMechanism_user-not-authorized.png)
 
+Besides this, the car also has a mechanism to verify the firmware that is being sent to it. The same mechanism is used to verify that the mechanic's tests are valid. This is done by checking the signature of the firmware or the tests with the actor's public key. If the signature is valid, the car will accept the firmware or the tests, otherwise it will reject them. We built this mechanism in a robust way, so that we can detect if either the data or the signature was tampered with. For example, if we try to send a firmware with a tampered fields, our mechanism will detect it and reject the firmware.
 
-*(give a tour of the best features of the application; add screenshots when relevant)*
-
-```sh
-$ demo command
-```
-
-*(replace with actual commands)*
-
-*(IMPORTANT: show evidence of the security mechanisms in action; show message payloads, print relevant messages, perform simulated attacks to show the defenses in action, etc.)*
+![Tampering with Signatures](img/securityMechanism_verify-signatures.png)
 
 This concludes the demonstration.
 
