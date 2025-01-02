@@ -13,6 +13,7 @@ import sys
 
 # TODO: HARDCODED????#MECHANIC_PRIV_KEY = f"{KEY_STORE}/f{MECHANIC_EMAIL}/key.priv"
 # USER_MOTORIST = os.getenv("USER_MOTORIST", "ronaldo@user.motorist.lan")
+MECHANIC_EMAIL = os.getenv("MECHANIC_EMAIL", "messi@mechanic.motorist.lan")
 
 
 class HomeScreen(Screen):
@@ -292,7 +293,6 @@ def tui():
         sys.exit(1)
 
     mechanic_id = sys.argv[1]
-    MECHANIC_EMAIL = sys.argv[1]
 
     req = Common.get_mutual_tls_session(MECHANIC_EMAIL)
     # set different port for mechanic
