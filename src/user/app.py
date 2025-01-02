@@ -49,6 +49,14 @@ class HomeScreen(Screen):
                     classes="controls",
                 )
 
+                yield Container(
+                    # Firmware Controls
+                    Static("Firmware Management:", classes="section-label"),
+                    Button("Check Firmware", id="check-firmware"),
+                    Button("Verify Firmware History", id="verify-firmware-history"),
+                    classes="controls",
+                )
+
             with Horizontal(classes="horizontal"):
                 yield Container(
                     # Config View Navigation
@@ -118,6 +126,34 @@ class HomeScreen(Screen):
                     )
                     response = req.get(
                         f"{Common.CAR_URL}/charge-battery",
+                    )
+                self.display_output(response.text)
+
+            elif button_id == "check-firmware":
+                response = req.get(
+                    f"{Common.CAR_URL}/check-firmware",
+                )
+                if response.status_code == 503:
+                    req.post(
+                        f"{Common.CAR_URL}/set-car-key",
+                        json={"key": app.encrypted_car_key},
+                    )
+                    response = req.get(
+                        f"{Common.CAR_URL}/check-firmware",
+                    )
+                self.display_output(response.text)
+
+            elif button_id == "verify-firmware-history":
+                response = req.get(
+                    f"{Common.CAR_URL}/verify-firmware-history",
+                )
+                if response.status_code == 503:
+                    req.post(
+                        f"{Common.CAR_URL}/set-car-key",
+                        json={"key": app.encrypted_car_key},
+                    )
+                    response = req.get(
+                        f"{Common.CAR_URL}/verify-firmware-history",
                     )
                 self.display_output(response.text)
 

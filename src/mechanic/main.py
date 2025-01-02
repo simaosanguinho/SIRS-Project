@@ -69,10 +69,6 @@ class HomeScreen(Screen):
                 signature = cryptolib.sign_data(MECHANIC_PRIV_KEY, str(tests))
 
                 data = {"tests": tests, "signature": signature}
-                with open("mechanic_signature.txt", "w") as f:
-                    f.write(signature)
-                    f.write("\n")
-                    f.write(str(tests))
                 # send to car - TODO: hardcoded car id
                 # FIXME
                 response = req.post(f"{Common.CAR_URL}/run-tests", json=data)

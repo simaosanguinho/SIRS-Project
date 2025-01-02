@@ -284,6 +284,64 @@ class Car:
 
         return "Firmware Updated Successfully"
 
+    def get_current_firmware(self):
+        try:
+            with pool.connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        SELECT firmware, signature, timestamp
+                        FROM firmwares
+                        WHERE car_id = %(car_id)s
+                        ORDER BY id DESC
+                        LIMIT 1;
+                        """,
+                        {"car_id": self.id},
+                    )
+                    firmware = cur.fetchone()
+
+            protected_firmware = {
+                "firmware": firmware[0],
+                "verified": PKI.verify_signature(
+                    MANUFACTURER_CERT, firmware[0], firmware[1]
+                ),
+            }
+            print("Protected Firmware", protected_firmware)
+            return json.dumps(protected_firmware)
+
+        except Exception as e:
+            raise (e)
+
+    def get_all_and_verify_firmware(self):
+        try:
+            with pool.connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        SELECT firmware, signature, timestamp
+                        FROM firmwares
+                        WHERE car_id = %(car_id)s
+                        ORDER BY id DESC;
+                        """,
+                        {"car_id": self.id},
+                    )
+                    firmwares = cur.fetchall()
+
+            protected_firmwares = []
+            for firmware in firmwares:
+                protected_firmware = {
+                    "firmware": firmware[0],
+                    "verified": PKI.verify_signature(
+                        MANUFACTURER_CERT, firmware[0], firmware[1]
+                    ),
+                }
+                protected_firmwares.append(protected_firmware)
+            print("Protected Firmwares", protected_firmwares)
+            return json.dumps(protected_firmwares)
+
+        except Exception as e:
+            raise (e)
+
 
 @app.route("/")
 def root():
@@ -423,6 +481,20 @@ def charge_battery():
     car.battery_level = 100
     car.op_count = 0
     return "Battery has been charged to 100%"
+
+
+@app.route("/check-firmware")
+def check_firmware():
+    if not car.car_key:
+        return "Not allowed without a key", 503
+    return car.get_current_firmware()
+
+
+@app.route("/verify-firmware-history")
+def verify_firmware_history():
+    if not car.car_key:
+        return "Not allowed without a key", 503
+    return car.get_all_and_verify_firmware()
 
 
 # DEBUG ENDPOINTS
