@@ -436,6 +436,11 @@ def set_car_key():
 def run_tests():
     if not car.maintenance_mode:
         return "Maintenance Mode is off", 401
+
+    entity = Entity(request.environ["peercert"])
+    if not entity.role == Role.Mechanic:
+        return "User not authorized to change the mechanic config", 403
+
     data = request.get_json()
     mechanic_cert = request.environ["peercert"]
     print("Data Received", data)
