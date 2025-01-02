@@ -108,9 +108,22 @@ This concludes the demonstration.
 
 ### Links to Used Tools and Libraries
 
-- [Java 11.0.16.1](https://openjdk.java.net/)
-- [Maven 3.9.5](https://maven.apache.org/)
-- ...
+- [Python](https://www.python.org/)
+  - [Flask](https://flask.palletsprojects.com/)
+  - [Requests](https://pypi.org/project/requests/)
+  - [Cryptography](https://pycryptodome.readthedocs.io/)
+  - [Textual](https://textual.textualize.io/)
+  - [PsycoPG2](https://www.psycopg.org/)
+  - [Werkzeug](https://werkzeug.palletsprojects.com/)
+  - [Click](https://click.palletsprojects.com/)
+- [NixOS](https://nixos.org/)
+- [PostgreSQL](https://www.postgresql.org/)
+- [MicroVM](https://github.com/astro/microvm.nix)]
+- [OpenSSL](https://www.openssl.org/)
+- [Step](https://smallstep.com/docs/step-ca/)
+- [Iputils](https://github.com/iputils/iputils)
+- [QEMU](https://www.qemu.org/)
+- 
 
 ### Versioning
 
