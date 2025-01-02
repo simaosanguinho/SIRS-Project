@@ -97,6 +97,43 @@ class Car:
         self.initialized = False
         self.default_config = default_config
         print(f"DEBUG: {self.key_store}")
+
+        firmware = None
+        try:
+            with pool.connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        SELECT firmware
+                        FROM firmwares
+                        WHERE car_id = %(car_id)s
+                        ORDER BY id DESC
+                        LIMIT 1;
+                        """,
+                        {"car_id": self.id},
+                    )
+                    firmware = cur.fetchone()
+        except Exception as e:
+            raise (e)
+        # existent firmware was found
+        if firmware:
+            self.firmware = firmware[0]
+            print("Firmware from DB", self.firmware)
+
+        else:
+            # ask for a new firmware from the manufacturer
+            response = req.get(f"{Common.MANUFACTURER_URL}/get-firmware/{1}")
+            if response.status_code != 200:
+                print("Failed to fetch firmware")
+            print(response.json())
+            firmware = response.json()["firmware"]
+            signature = response.json()["signature"]
+            print(firmware)
+            print(signature)
+            self.update_firmware(firmware, signature)
+            print("Firmware from Manufacturer", firmware)
+        self.initialized = True
+
         if self.car_key:
             self.complete_init()
 
@@ -138,41 +175,6 @@ class Car:
                 )
                 print("Default Config", config_protected)
                 self.store_update(json.dumps(config_protected["configuration"]))
-
-        # do the same with the firmware
-        firmware = None
-        try:
-            with pool.connection() as conn:
-                with conn.cursor() as cur:
-                    cur.execute(
-                        """
-                        SELECT firmware
-                        FROM firmwares
-                        WHERE car_id = %(car_id)s
-                        ORDER BY id DESC
-                        LIMIT 1;
-                        """,
-                        {"car_id": self.id},
-                    )
-                    firmware = cur.fetchone()
-        except Exception as e:
-            raise (e)
-        # existent firmware was found
-        if firmware:
-            self.firmware = firmware[0]
-            print("Firmware from DB", self.firmware)
-
-        else:
-            # ask for a new firmware from the manufacturer
-            response = req.get(f"{Common.MANUFACTURER_URL}/get-firmware/{1}")
-            if response.status_code != 200:
-                print("Failed to fetch firmware")
-            print(response.json())
-            firmware = response.json()["firmware"]
-            signature = response.json()["signature"]
-            self.update_firmware(firmware, signature)
-            print("Firmware from Manufacturer", firmware)
-        self.initialized = True
 
     def is_user_owner(self, user: Entity):
         return user in self.config["user"]
@@ -257,9 +259,6 @@ class Car:
     def update_firmware(self, firmware, signature):
         print("Updating Firmware")
         print("Maintenance Mode: ", self.maintenance_mode)
-        # check if maintenance mode is on
-        if not self.maintenance_mode:
-            return "Firmware Update Failed: Maintenance Mode is Off"
 
         if not PKI.verify_signature(MANUFACTURER_CERT, firmware, signature):
             return "Invalid signature"
@@ -280,6 +279,8 @@ class Car:
                         },
                     )
                 conn.commit()
+
+                print("Firmware Updated")
         except Exception as e:
             raise (e)
 
@@ -453,7 +454,7 @@ def run_tests():
 @app.route("/maintenance-mode/<mode>")
 def maintenance_mode(mode):
     entity = Entity(request.environ["peercert"])
-    if not entity.role == Role.User or not entity.car_owner == car.id:
+    if (not entity.role == Role.User) and not (entity.car_owner == car.id):
         return "User not authorized to change maintenance mode"
 
     if not car.car_key:
@@ -477,6 +478,7 @@ def maintenance_mode(mode):
 def update_config():
     if not car.car_key:
         return "Not allowed without a key", 503
+
     data = request.get_json()
     print("Data Received", data)
     print("Type", type(data))
@@ -606,6 +608,8 @@ def whoami():
 def update_firmware():
     if not car.car_key:
         return "Not allowed without a key", 503
+    if not car.maintenance_mode:
+        return "Maintenance Mode is off", 504
     try:
         # check maintenance mode
         data = request.get_json()
