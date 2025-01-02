@@ -63,6 +63,5 @@ openssl x509 -req -days 365 -in entity.csr -CA "$CA_CRT" \
 openssl verify -CAfile "$CA_CRT" entity.crt
 echo "Inspect newly generated certificate":
 step certificate inspect entity.crt
-# TODO: maybe verify all certs with `step certificate lint`
 
 popd

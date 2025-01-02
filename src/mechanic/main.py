@@ -11,8 +11,6 @@ import sys
 
 # from textual.widgets import Input
 
-# TODO: HARDCODED????#MECHANIC_PRIV_KEY = f"{KEY_STORE}/f{MECHANIC_EMAIL}/key.priv"
-# USER_MOTORIST = os.getenv("USER_MOTORIST", "ronaldo@user.motorist.lan")
 MECHANIC_EMAIL = os.getenv("MECHANIC_EMAIL", "messi@mechanic.motorist.lan")
 
 
@@ -57,7 +55,6 @@ class HomeScreen(Screen):
 
         try:
             if button_id == "tests":
-                # TODO: Implement tests
                 self.display_output("Running tests...")
                 tests = {}
 
@@ -69,8 +66,6 @@ class HomeScreen(Screen):
                 signature = cryptolib.sign_data(MECHANIC_PRIV_KEY, str(tests))
 
                 data = {"tests": tests, "signature": signature}
-                # send to car - TODO: hardcoded car id
-                # FIXME
                 response = req.post(f"{Common.CAR_URL}/run-tests", json=data)
                 self.display_output(response.text)
 

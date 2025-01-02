@@ -8,9 +8,6 @@ from rich import pretty
 from rich import print
 from datetime import datetime
 
-# TODO: make this dynamic by taking AEAD algorithm dynamically
-# from cryptography.hazmat.primitives.ciphers import aead
-# aead.__all__['AESGCM']
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding

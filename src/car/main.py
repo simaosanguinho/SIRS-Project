@@ -167,7 +167,6 @@ class Car:
                 self.config = json.load(file)
                 print("Default Config", self.config)
                 config_protected = cryptolib.protect_lib(
-                    # FIXME: dont use hardcoded key
                     self.config,
                     f"{self.car_key}",
                     ["configuration"],
@@ -448,7 +447,6 @@ def run_tests():
         tests = data["tests"]
         signature = data["signature"]
 
-        # FIXME: VERIFY SIGNATURE??
         print("Tests", tests)
         print("Signature", signature)
         car.store_tests(json.dumps(tests), signature, mechanic_cert)
@@ -491,9 +489,6 @@ def update_config():
     data = request.get_json()
     print("Data Received", data)
     print("Type", type(data))
-
-    # TODO: Add validation for the data - check car id and user id
-    # Change the hardcoded values
 
     try:
         # store the update protected
@@ -633,7 +628,6 @@ def whoami():
     return str(request.environ["peercert"])
 
 
-# TODO: Add endpoint to update firmware
 @app.route("/update-firmware", methods=["POST"])
 def update_firmware():
     entity = Entity(request.environ["peercert"])
