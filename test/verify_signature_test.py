@@ -3,7 +3,7 @@ import os
 from cryptolib import PKI
 
 # Configuration
-MANUFACTURER_URL = "http://127.0.0.1:5201"  # Adjust port as needed
+MANUFACTURER_URL = "https://127.0.0.1:5201"  # Adjust port as needed
 CAR_ID = 2
 PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
 KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")

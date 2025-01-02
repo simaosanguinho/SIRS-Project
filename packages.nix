@@ -10,14 +10,7 @@ let
 
       propagatedBuildInputs = pythonDeps pkgs.python3.pkgs;
     };
-
-
 in
 {
   motorist = mkMotoristPkg "motorist";
-  # cryptolib-test = mkMotoristPkg "cryptolib";
-  # user = mkMotoristPkg "user";
-  # mechanic = mkMotoristPkg "mechanic";
-  # manufacturer = mkMotoristPkg "manufacturer";
-
 }

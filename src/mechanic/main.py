@@ -77,7 +77,7 @@ class HomeScreen(Screen):
                 data = {"tests": tests, "signature": signature}
 
                 # send to car - TODO: hardcoded car id
-                car_url = f"http://127.0.0.1:{5001}"
+                car_url = f"https://127.0.0.1:{5001}"
                 response = requests.post(
                     f"{car_url}/run-tests", json=data, cert=(f"{app.key_store}/")
                 )
@@ -233,7 +233,7 @@ def update_firmware(car_id):
         return "Invalid signature"
 
     # send the firmware to the car
-    car_url = f"http://127.0.0.1:{5000 + int(car_id)}"
+    car_url = f"https://127.0.0.1:{5000 + int(car_id)}"
     try:
         response = requests.post(f"{car_url}/update-firmware", json=response.json())
     except Exception:
@@ -289,6 +289,7 @@ arctic_theme = Theme(
 
 def tui():
     global MANUFACTURER_URL
+    global mechanic_email
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} <mechanic_email>")
         sys.exit(1)
@@ -297,7 +298,7 @@ def tui():
     mechanic_email = sys.argv[1]
 
     # set different port for mechanic
-    # car_url = f"http://127.0.0.1:{5000 + int(1)}"
+    # car_url = f"https://127.0.0.1:{5000 + int(1)}"
     MANUFACTURER_URL = f"https://127.0.0.1:{5200 + int(1)}"
     MechanicApp(mechanic_id, MANUFACTURER_URL).run()
 

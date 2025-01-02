@@ -16,7 +16,7 @@ Ports start at address 5000.
 - /update-config the client can change a car config
 
 ```sh
-curl -X POST http://127.0.0.1:5001/update-config \
+curl -X POST https://127.0.0.1:5001/update-config \
 -H "Content-Type: application/json" \
 -d '{
     "carId": 1,
