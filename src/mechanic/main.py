@@ -49,6 +49,7 @@ class HomeScreen(Screen):
         yield Footer()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
+        global MECHANIC_PRIV_KEY
         """Handle button events and send appropriate requests."""
         button_id = event.button.id
         # app = self.app  # Get reference to the main app instance
@@ -302,6 +303,9 @@ def tui():
     MECHANIC_PRIV_KEY = os.getenv(
         "MECHANIC_PRIV_KEY", f"{Common.KEY_STORE}/{MECHANIC_EMAIL}/key.priv"
     )
+    if not os.path.isfile(MECHANIC_PRIV_KEY):
+        print(f"FATAL: mechanic priv key does not exist at {MECHANIC_PRIV_KEY}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
