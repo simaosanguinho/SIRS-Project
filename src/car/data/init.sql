@@ -26,5 +26,6 @@ CREATE TABLE IF NOT EXISTS mechanic_tests (
     car_id INTEGER NOT NULL,        -- Foreign key for the car ID
     tests JSON NOT NULL,             -- Test details in JSON format
     signature TEXT NOT NULL,        -- signature of the test
-    timestamp TIMESTAMP NOT NULL    -- Timestamp of the update
+    timestamp TIMESTAMP NOT NULL,   -- Timestamp of the update
+    mechanic_cert TEXT NOT NULL     -- Mechanic certificate
 );

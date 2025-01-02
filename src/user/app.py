@@ -57,6 +57,14 @@ class HomeScreen(Screen):
                     classes="controls",
                 )
 
+                yield Container(
+                    # Tests Controls
+                    Static("Tests Management:", classes="section-label"),
+                    Button("Check Tests", id="check-tests"),
+                    Button("Verify Tests History", id="verify-tests-history"),
+                    classes="controls",
+                )
+
             with Horizontal(classes="horizontal"):
                 yield Container(
                     # Config View Navigation
@@ -154,6 +162,34 @@ class HomeScreen(Screen):
                     )
                     response = req.get(
                         f"{Common.CAR_URL}/verify-firmware-history",
+                    )
+                self.display_output(response.text)
+
+            elif button_id == "check-tests":
+                response = req.get(
+                    f"{Common.CAR_URL}/check-tests",
+                )
+                if response.status_code == 503:
+                    req.post(
+                        f"{Common.CAR_URL}/set-car-key",
+                        json={"key": app.encrypted_car_key},
+                    )
+                    response = req.get(
+                        f"{Common.CAR_URL}/check-tests",
+                    )
+                self.display_output(response.text)
+
+            elif button_id == "verify-tests-history":
+                response = req.get(
+                    f"{Common.CAR_URL}/verify-tests-history",
+                )
+                if response.status_code == 503:
+                    req.post(
+                        f"{Common.CAR_URL}/set-car-key",
+                        json={"key": app.encrypted_car_key},
+                    )
+                    response = req.get(
+                        f"{Common.CAR_URL}/verify-tests-history",
                     )
                 self.display_output(response.text)
 

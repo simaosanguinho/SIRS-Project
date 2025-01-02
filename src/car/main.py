@@ -10,6 +10,8 @@ from common import Common
 
 import werkzeug.serving
 import ssl
+from cryptography.hazmat.primitives import serialization
+from cryptography import x509
 
 req = Common.get_tls_session()
 
@@ -206,19 +208,22 @@ class Car:
         except Exception as e:
             raise (e)
 
-    def store_tests(self, tests, signature):
+    def store_tests(self, tests, signature, mechanic_cert):
         try:
             with pool.connection() as conn:
                 with conn.cursor() as cur:
                     cur.execute(
                         """
-                        INSERT INTO mechanic_tests (car_id, tests, signature, timestamp)
-                        VALUES (%(car_id)s, %(tests)s, %(signature)s, NOW());
+                        INSERT INTO mechanic_tests (car_id, tests, signature, timestamp, mechanic_cert)
+                        VALUES (%(car_id)s, %(tests)s, %(signature)s, NOW(), %(mechanic_cert)s);
                         """,
                         {
                             "car_id": self.id,
                             "tests": tests,
                             "signature": signature,
+                            "mechanic_cert": mechanic_cert.public_bytes(
+                                encoding=serialization.Encoding.PEM
+                            ).decode("utf-8"),
                         },
                     )
                 conn.commit()
@@ -342,6 +347,68 @@ class Car:
         except Exception as e:
             raise (e)
 
+    def get_latest_test(self):
+        try:
+            with pool.connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        SELECT tests, signature, mechanic_cert
+                        FROM mechanic_tests
+                        WHERE car_id = %(car_id)s
+                        ORDER BY id DESC
+                        LIMIT 1;
+                        """,
+                        {"car_id": self.id},
+                    )
+                    tests = cur.fetchone()
+
+            protected_tests = {
+                "tests": str(tests[0]),
+                "verified": PKI.verify_signature(
+                    x509.load_pem_x509_certificate(tests[2].encode("utf-8")),
+                    str(tests[0]),
+                    tests[1],
+                ),
+            }
+            print("Protected Tests", protected_tests)
+            return json.dumps(protected_tests)
+
+        except Exception as e:
+            raise (e)
+
+    def get_all_and_verify_tests(self):
+        try:
+            with pool.connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        SELECT tests, signature, mechanic_cert
+                        FROM mechanic_tests
+                        WHERE car_id = %(car_id)s
+                        ORDER BY id DESC;
+                        """,
+                        {"car_id": self.id},
+                    )
+                    tests = cur.fetchall()
+
+            protected_tests = []
+            for test in tests:
+                protected_test = {
+                    "tests": str(test[0]),
+                    "verified": PKI.verify_signature(
+                        x509.load_pem_x509_certificate(test[2].encode("utf-8")),
+                        str(test[0]),
+                        test[1],
+                    ),
+                }
+                protected_tests.append(protected_test)
+            print("Protected Tests", protected_tests)
+            return json.dumps(protected_tests)
+
+        except Exception as e:
+            raise (e)
+
 
 @app.route("/")
 def root():
@@ -365,6 +432,7 @@ def run_tests():
     if not car.maintenance_mode:
         return "Maintenance Mode is off", 504
     data = request.get_json()
+    mechanic_cert = request.environ["peercert"]
     print("Data Received", data)
     try:
         tests = data["tests"]
@@ -373,7 +441,7 @@ def run_tests():
         # FIXME: VERIFY SIGNATURE??
         print("Tests", tests)
         print("Signature", signature)
-        car.store_tests(json.dumps(tests), signature)
+        car.store_tests(json.dumps(tests), signature, mechanic_cert)
         print("Tests", tests)
         return "Tests run successfully"
     except Exception as e:
@@ -496,6 +564,20 @@ def verify_firmware_history():
     if not car.car_key:
         return "Not allowed without a key", 503
     return car.get_all_and_verify_firmware()
+
+
+@app.route("/check-tests")
+def check_tests():
+    if not car.car_key:
+        return "Not allowed without a key", 503
+    return car.get_latest_test()
+
+
+@app.route("/verify-tests-history")
+def verify_tests_history():
+    if not car.car_key:
+        return "Not allowed without a key", 503
+    return car.get_all_and_verify_tests()
 
 
 # DEBUG ENDPOINTS
