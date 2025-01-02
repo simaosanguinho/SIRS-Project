@@ -363,6 +363,9 @@ class Car:
                     )
                     tests = cur.fetchone()
 
+            if not tests:
+                return "No tests found"
+
             protected_tests = {
                 "tests": str(tests[0]),
                 "verified": PKI.verify_signature(
@@ -391,6 +394,9 @@ class Car:
                         {"car_id": self.id},
                     )
                     tests = cur.fetchall()
+
+            if tests == []:
+                return "No tests found"
 
             protected_tests = []
             for test in tests:
