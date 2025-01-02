@@ -240,7 +240,7 @@ def tui():
     global MECHANIC_PRIV_KEY
     global req
     if len(sys.argv) < 2:
-        print(f"Usage: {sys.argv[0]} <MECHANIC_EMAIL>")
+        print(f"Usage: {sys.argv[0]} <MECHANIC_ID>")
         sys.exit(1)
 
     mechanic_id = sys.argv[1]
