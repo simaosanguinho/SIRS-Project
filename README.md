@@ -154,8 +154,14 @@ In this screen they can choose over a variety of options, such as:
 ![Update Configuration](img/mechanicApp_update_config-menu1.png)
 ![Update Configuration](img/mechanicApp_update_config-output.png)
 
-
 ### Manufacturer
+
+The manufacturer can issue a new firmware. Since the manufacturer doesn't have a direct interface with the car and the mechanic, he has available an endpoint to issue a new firmware.
+
+![Issue Firmware](img/manufacturer_issue-api-call.png)
+
+Has we can see in the image above, the manufacturer can issue a new firmware by calling the endpoint `/get-firmware/<car-id>` with the car's id as a parameter. This will return the new firmware version (he uses the unix timestamp as the firmware version) and the signature of the firmware with the manufacturer's private key, so that it can be later verified.
+
 
 ### Car
 
