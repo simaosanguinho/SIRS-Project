@@ -18,11 +18,7 @@ PG_CONNSTRING = os.getenv(
     "PG_CONNSTRING",
     "host=localhost port=7464 dbname=motorist-car-db user=postgres password=password",
 )
-PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
-KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
-MANUFACTURER_CERT = PKI.load_certificate(f"{KEY_STORE}/manufacturer.crt")
-ROOT_CA_PATH = f"{KEY_STORE}/ca.crt"
-MANUFACTURER_URL = f"https://127.0.0.1:{5200 + int(1)}"
+MANUFACTURER_CERT = PKI.load_certificate(f"{Common.KEY_STORE}/manufacturer.crt")
 
 app = Flask(__name__)
 
@@ -94,7 +90,7 @@ class Car:
         self.battery_level = 100
         self.op_count = 0
         self.car_name = f"car{car_id}"
-        self.key_store = f"{KEY_STORE}/{self.car_name}-web"
+        self.key_store = f"{Common.KEY_STORE}/{self.car_name}-web"
         self.car_key = None
         self.initialized = False
         self.default_config = default_config
@@ -166,7 +162,7 @@ class Car:
 
         else:
             # ask for a new firmware from the manufacturer
-            response = req.get(f"{MANUFACTURER_URL}/get-firmware/{1}")
+            response = req.get(f"{Common.MANUFACTURER_URL}/get-firmware/{1}")
             if response.status_code != 200:
                 print("Failed to fetch firmware")
             print(response.json())
@@ -469,14 +465,14 @@ def start():
     global car
     car = Car(default_config_path, sys.argv[1], sys.argv[2])
     # set different port for car based on id
-    port = 5000 + int(sys.argv[1])
+    port = Common.CAR_PORT
 
     # create_default_context establishes a new SSLContext object that
     # aligns with the purpose we provide as an argument. Here we provide
     # Purpose.CLIENT_AUTH, so the SSLContext is set up to handle validation
     # of client certificates.
     ssl_context = ssl.create_default_context(
-        purpose=ssl.Purpose.CLIENT_AUTH, cafile=ROOT_CA_PATH
+        purpose=ssl.Purpose.CLIENT_AUTH, cafile=Common.ROOT_CA_PATH
     )
 
     # load in the certificate and private key for our server to provide to clients.

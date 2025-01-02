@@ -75,8 +75,7 @@ class HomeScreen(Screen):
                     f.write(str(tests))
                 # send to car - TODO: hardcoded car id
                 # FIXME
-                car_url = f"https://127.0.0.1:{5000 + int(1)}"
-                response = req.post(f"{car_url}/run-tests", json=data)
+                response = req.post(f"{Common.CAR_URL}/run-tests", json=data)
                 self.display_output(response.text)
 
             elif button_id == "update-firmware":
@@ -128,10 +127,9 @@ class UpdateConfigScreen(Screen):
 
     def on_mount(self) -> None:
         """Fetch the current configuration when the screen is mounted."""
-        app = self.app  # Get reference to the main app instance
         try:
             # Fetch current configuration from Flask API
-            response = req.get(f"{app.flask_url}/get-mechanic-config")
+            response = req.get(f"{Common.CAR_URL}/get-mechanic-config")
             if response.status_code == 200:
                 car_unprotected_doc = response.json()
                 # Assuming the config is returned as a dictionary
@@ -163,7 +161,7 @@ class UpdateConfigScreen(Screen):
                     }
 
                     response = req.post(
-                        f"{app.flask_url}/update-mechanic-config",
+                        f"{Common.CAR_URL}/update-mechanic-config",
                         json=car_doc_unprotected,
                     )
 
@@ -182,7 +180,7 @@ class UpdateConfigScreen(Screen):
 
 def update_firmware(car_id):
     # fetch the firmware from manufacturer and send it to the car
-    response = req.get(f"{MANUFACTURER_URL}/get-firmware/{1}")
+    response = req.get(f"{Common.MANUFACTURER_URL}/get-firmware/{1}")
     if response.status_code != 200:
         return "Failed to fetch firmware"
     print(response.json())
@@ -195,10 +193,8 @@ def update_firmware(car_id):
     ):
         return "Invalid signature"
 
-    # send the firmware to the car
-    car_url = f"https://127.0.0.1:{5000 + int(car_id)}"
     try:
-        response = req.post(f"{car_url}/update-firmware", json=response.json())
+        response = req.post(f"{Common.CAR_URL}/update-firmware", json=response.json())
     except Exception as e:
         return f"Failed to establish connection with car {car_id}: \n{e}"
     print(response.text)
@@ -219,10 +215,9 @@ class MechanicApp(App):
 
     # encrypt the mechanic.key with the manufacturer public key
 
-    def __init__(self, mechanic_id, MANUFACTURER_URL):
+    def __init__(self, mechanic_id):
         super().__init__()
         self.mechanic_id = mechanic_id
-        self.MANUFACTURER_URL = MANUFACTURER_URL
 
     def on_mount(self) -> None:
         self.push_screen("home")
@@ -251,7 +246,6 @@ arctic_theme = Theme(
 
 
 def tui():
-    global MANUFACTURER_URL
     global MECHANIC_EMAIL
     global MECHANIC_PRIV_KEY
     global req
@@ -262,9 +256,6 @@ def tui():
     mechanic_id = sys.argv[1]
 
     req = Common.get_mutual_tls_session(MECHANIC_EMAIL)
-    # set different port for mechanic
-    # car_url = f"https://127.0.0.1:{5000 + int(1)}"
-    MANUFACTURER_URL = f"https://127.0.0.1:{5200 + int(1)}"
 
     MECHANIC_PRIV_KEY = os.getenv(
         "MECHANIC_PRIV_KEY", f"{Common.KEY_STORE}/{MECHANIC_EMAIL}/key.priv"
@@ -273,7 +264,7 @@ def tui():
         print(f"FATAL: mechanic priv key does not exist at {MECHANIC_PRIV_KEY}")
         sys.exit(1)
 
-    MechanicApp(mechanic_id, MANUFACTURER_URL).run()
+    MechanicApp(mechanic_id).run()
 
 
 if __name__ == "__main__":

@@ -70,68 +70,68 @@ class HomeScreen(Screen):
 
         try:
             if button_id == "maintenance-on":
-                response = req.get(f"{app.flask_url}/maintenance-mode/on")
+                response = req.get(f"{Common.CAR_URL}/maintenance-mode/on")
                 if response.status_code == 503:
                     req.post(
-                        f"{app.flask_url}/set-car-key",
+                        f"{Common.CAR_URL}/set-car-key",
                         json={"key": app.encrypted_car_key},
                     )
                     response = req.get(
-                        f"{app.flask_url}/maintenance-mode/on",
+                        f"{Common.CAR_URL}/maintenance-mode/on",
                     )
                 self.display_output(response.text)
 
             elif button_id == "maintenance-off":
                 response = req.get(
-                    f"{app.flask_url}/maintenance-mode/off",
+                    f"{Common.CAR_URL}/maintenance-mode/off",
                 )
                 if response.status_code == 503:
                     req.post(
-                        f"{app.flask_url}/set-car-key",
+                        f"{Common.CAR_URL}/set-car-key",
                         json={"key": app.encrypted_car_key},
                     )
-                    response = req.get(f"{app.flask_url}/maintenance-mode/off")
+                    response = req.get(f"{Common.CAR_URL}/maintenance-mode/off")
                 self.display_output(response.text)
 
             elif button_id == "check-battery":
                 response = req.get(
-                    f"{app.flask_url}/check-battery",
+                    f"{Common.CAR_URL}/check-battery",
                 )
                 if response.status_code == 503:
                     req.post(
-                        f"{app.flask_url}/set-car-key",
+                        f"{Common.CAR_URL}/set-car-key",
                         json={"key": app.encrypted_car_key},
                     )
                     response = req.get(
-                        f"{app.flask_url}/check-battery",
+                        f"{Common.CAR_URL}/check-battery",
                     )
                 self.display_output(response.text)
 
             elif button_id == "charge-battery":
                 response = req.get(
-                    f"{app.flask_url}/charge-battery",
+                    f"{Common.CAR_URL}/charge-battery",
                 )
                 if response.status_code == 503:
                     req.post(
-                        f"{app.flask_url}/set-car-key",
+                        f"{Common.CAR_URL}/set-car-key",
                         json={"key": app.encrypted_car_key},
                     )
                     response = req.get(
-                        f"{app.flask_url}/charge-battery",
+                        f"{Common.CAR_URL}/charge-battery",
                     )
                 self.display_output(response.text)
 
             elif button_id == "get-config":
                 response = req.get(
-                    f"{app.flask_url}/get-config",
+                    f"{Common.CAR_URL}/get-config",
                 )
                 if response.status_code == 503:
                     req.post(
-                        f"{app.flask_url}/set-car-key",
+                        f"{Common.CAR_URL}/set-car-key",
                         json={"key": app.encrypted_car_key},
                     )
                     response = req.get(
-                        f"{app.flask_url}/get-config",
+                        f"{Common.CAR_URL}/get-config",
                     )
                 car_unprotected_doc = cryptolib.unprotect_lib(
                     response.json(), f"{app.key_store}/car.key", ["configuration"]
@@ -187,15 +187,15 @@ class UpdateConfigScreen(Screen):
         try:
             # Fetch current configuration from Flask API
             response = req.get(
-                f"{app.flask_url}/get-config",
+                f"{Common.CAR_URL}/get-config",
             )
             if response.status_code == 503:
                 req.post(
-                    f"{app.flask_url}/set-car-key",
+                    f"{Common.CAR_URL}/set-car-key",
                     json={"key": app.encrypted_car_key},
                 )
                 response = req.get(
-                    f"{app.flask_url}/get-config",
+                    f"{Common.CAR_URL}/get-config",
                 )
             if response.status_code == 200:
                 car_unprotected_doc = cryptolib.unprotect_lib(
@@ -236,16 +236,16 @@ class UpdateConfigScreen(Screen):
                     )
 
                     response = req.post(
-                        f"{app.flask_url}/update-config",
+                        f"{Common.CAR_URL}/update-config",
                         json=car_doc_protected,
                     )
                     if response.status_code == 503:
                         req.post(
-                            f"{app.flask_url}/set-car-key",
+                            f"{Common.CAR_URL}/set-car-key",
                             json={"key": app.encrypted_car_key},
                         )
                         response = req.post(
-                            f"{app.flask_url}/update-config",
+                            f"{Common.CAR_URL}/update-config",
                             json=car_doc_protected,
                         )
                     self.display_output(response.text)
@@ -270,11 +270,10 @@ class CarApp(App):
 
     CSS_PATH = "styles.css"
 
-    def __init__(self, car_id, owner_id, flask_url):
+    def __init__(self, car_id, owner_id):
         super().__init__()
         self.car_id = car_id
         self.owner_id = owner_id
-        self.flask_url = flask_url
         self.key_store = f"{Common.KEY_STORE}/{USER_MOTORIST}"
 
         # encrypt the car.key with the car public key
@@ -318,11 +317,8 @@ def tui():
     car_id = sys.argv[1]
     owner_id = sys.argv[2]
 
-    # Assume Flask app is running locally
-    flask_url = f"https://127.0.0.1:{5000 + int(car_id)}"
-
     # Run the app
-    CarApp(car_id, owner_id, flask_url).run()
+    CarApp(car_id, owner_id).run()
 
 
 if __name__ == "__main__":

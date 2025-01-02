@@ -7,9 +7,14 @@ from cryptolib import PKI
 class Common:
     PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
     KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
-    MANUFACTURER_CERT = PKI.load_certificate(f"{KEY_STORE}/manufacturer.crt")
     ROOT_CA_PATH = f"{KEY_STORE}/ca.crt"
-    MANUFACTURER_URL = f"https://127.0.0.1:{5200 + int(1)}"
+    MANUFACTURER_CERT = PKI.load_certificate(f"{KEY_STORE}/manufacturer.crt")
+    CAR_PORT = os.getenv("CAR_PORT", "5001")
+    CAR_URL = os.getenv("CAR_URL", f"https://127.0.0.1:{CAR_PORT}")
+    MANUFACTURER_PORT = os.getenv("MANUFACTURER_PORT", "5201")
+    MANUFACTURER_URL = os.getenv(
+        "MANUFACTURER_URL", f"https://127.0.0.1:{MANUFACTURER_PORT}"
+    )
 
     @staticmethod
     def get_tls_session():

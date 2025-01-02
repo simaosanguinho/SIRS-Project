@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 import cryptolib
 from psycopg_pool import ConnectionPool
+from common import Common
 
 
 # Database connection parameters
@@ -12,10 +13,7 @@ PG_CONNSTRING = os.getenv(
     "PG_CONNSTRING",
     "host=localhost port=7654 dbname=motorist-manufacturer-db user=postgres password=password",
 )
-PROJECT_ROOT = os.getenv("PROJECT_ROOT", "../../")
-KEY_STORE = os.getenv("KEY_STORE", f"{PROJECT_ROOT}/key_store")
-MANUF_PRIV_KEY = f"{KEY_STORE}/manufacturer/key.priv"
-ROOT_CA_PATH = f"{KEY_STORE}/ca.crt"
+MANUF_PRIV_KEY = f"{Common.KEY_STORE}/manufacturer/key.priv"
 
 
 # Initialize the connection pool
@@ -29,7 +27,7 @@ pool = ConnectionPool(
 class Manufacturer:
     def __init__(self, id):
         self.id = id
-        self.key_store = f"{KEY_STORE}/manufacturer"
+        self.key_store = f"{Common.KEY_STORE}/manufacturer"
 
 
 app = Flask(__name__)
@@ -98,7 +96,7 @@ def start():
     global manufacturer
     manufacturer = Manufacturer(sys.argv[1])
     # set different port for manufacturer
-    port = 5200 + int(sys.argv[1])
+    port = Common.MANUFACTURER_PORT
 
     app.run(
         port=port,
