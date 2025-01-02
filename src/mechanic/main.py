@@ -14,8 +14,6 @@ import sys
 # TODO: HARDCODED????#MECHANIC_PRIV_KEY = f"{KEY_STORE}/f{MECHANIC_EMAIL}/key.priv"
 # USER_MOTORIST = os.getenv("USER_MOTORIST", "ronaldo@user.motorist.lan")
 
-req = Common.get_tls_session()
-
 
 class HomeScreen(Screen):
     """Home screen that displays basic mechanic actions."""
@@ -233,8 +231,8 @@ def update_firmware(car_id):
     car_url = f"https://127.0.0.1:{5000 + int(car_id)}"
     try:
         response = req.post(f"{car_url}/update-firmware", json=response.json())
-    except Exception:
-        return f"Failed to establish connection with car {car_id}"
+    except Exception as e:
+        return f"Failed to establish connection with car {car_id}: \n{e}"
     print(response.text)
     if response.status_code != 200:
         return "Failed to update firmware"
@@ -288,6 +286,7 @@ def tui():
     global MANUFACTURER_URL
     global MECHANIC_EMAIL
     global MECHANIC_PRIV_KEY
+    global req
     if len(sys.argv) < 2:
         print(f"Usage: {sys.argv[0]} <MECHANIC_EMAIL>")
         sys.exit(1)
@@ -295,6 +294,7 @@ def tui():
     mechanic_id = sys.argv[1]
     MECHANIC_EMAIL = sys.argv[1]
 
+    req = Common.get_mutual_tls_session(MECHANIC_EMAIL)
     # set different port for mechanic
     # car_url = f"https://127.0.0.1:{5000 + int(1)}"
     MANUFACTURER_URL = f"https://127.0.0.1:{5200 + int(1)}"
