@@ -171,7 +171,7 @@ The endpoints are the ones that were previously mentioned in the Mechanic and Ma
 
 The only endpoint that is not mentioned is the `/set-car-key` endpoint, that allows the car owner to share the car's key (a shared secret that should only be known by the car and the owner) with the car. This is done by calling the endpoint with the car's key, encrypted with the car's public key, as a parameter. This way, the car can decrypt the key and use it to decrypt the configuration updates that the owner sends and retrieves from the car.
 
-It is important to note that the car has a authorization mechanism that only actors to interact with certain endpoints if they have the correct permissions (we use the concept of roles here). 
+It is important to note that the car has a authorization mechanism that only allows actors to interact with certain endpoints if they have the correct permissions (we use the concept of roles here). 
 
 
 
