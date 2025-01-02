@@ -219,6 +219,14 @@ class HomeScreen(Screen):
 
             elif button_id == "go-config":
                 # Navigate to the UpdateConfigScreen
+
+                response = req.get(
+                    f"{Common.CAR_URL}/get-config",
+                )
+                if response.status_code == 403:
+                    self.display_output(response.text)
+                    return
+
                 self.display_output("Output:")
                 self.app.push_screen(UpdateConfigScreen())
 
