@@ -110,11 +110,6 @@ class HomeScreen(Screen):
                 self.display_output(response.text)
 
             elif button_id == "check-battery":
-                with open("ouput.txt", "w") as f:
-                    f.write(f"{app.key_store}/entity.crt\n")
-                    f.write(f"{app.key_store}/key.priv\n")
-                    f.write(f"{ROOT_CA_PATH}\n")
-
                 response = requests.get(
                     f"{app.flask_url}/check-battery",
                     cert=(f"{app.key_store}/entity.crt", f"{app.key_store}/key.priv"),

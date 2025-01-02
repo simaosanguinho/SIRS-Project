@@ -83,7 +83,6 @@ class Entity:
 class Car:
     def __init__(self, default_config, car_id, owner_id=None):
         self.maintenance_mode = False
-        self.deafult_config = default_config
         self.config = {}
         self.mechanic_config = {}
         self.firmware = {}
