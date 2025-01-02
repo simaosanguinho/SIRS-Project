@@ -391,7 +391,7 @@ def maintenance_mode(mode):
         car.maintenance_mode = True
         # set car config to default
         with open(car.default_config, "r") as file:
-            car.mechanic_config = json.load(file)
+            car.mechanic_config["configuration"] = json.load(file)["configuration"]
         print("Default Config", car.mechanic_config)
 
     elif mode == "off":
@@ -443,7 +443,8 @@ def update_mechanic_config():
 
     try:
         config = data["configuration"]
-        car.mechanic_config = config
+        car.mechanic_config["configuration"] = config
+        return "Config Updated Sucessfully"
 
     except Exception as e:
         return f"Error: {e}"

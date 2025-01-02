@@ -38,8 +38,8 @@ class HomeScreen(Screen):
             )
 
             yield Container(
-                Static("Configuration:", classes="section-label"),
-                Button("Go to Config", id="go-config"),
+                Static("Test Configuration:", classes="section-label"),
+                Button("Go to Test Configuration", id="go-config"),
                 classes="controls",
             )
 
@@ -58,7 +58,7 @@ class HomeScreen(Screen):
         try:
             if button_id == "tests":
                 # TODO: Implement tests
-                self.display_output("Running tests ")
+                self.display_output("Running tests...")
                 tests = {}
 
                 for i in range(1, 10):
@@ -111,12 +111,12 @@ class UpdateConfigScreen(Screen):
                 )
 
             with Vertical(classes="vertical"):
-                yield Static("Edit Car Configuration:", id="config-title")
+                yield Static("Edit Car Test Configuration:", id="config-title")
                 self.config_input = Input(
                     placeholder="Enter new configuration JSON", id="update-config"
                 )
                 yield Container(self.config_input)
-                yield Button("Update Car Configuration", id="send-update-config")
+                yield Button("Update Car Test Configuration", id="send-update-config")
 
         yield Static("Output:", id="output")
         yield Footer()
@@ -132,7 +132,6 @@ class UpdateConfigScreen(Screen):
                 self.config_input.value = json.dumps(
                     car_unprotected_doc["configuration"]
                 )
-
             else:
                 self.display_output("Failed to fetch current configuration.")
         except Exception as e:
@@ -141,7 +140,7 @@ class UpdateConfigScreen(Screen):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses on the UpdateConfigScreen."""
         button_id = event.button.id
-        app = self.app
+        # app = self.app
 
         try:
             if button_id == "send-update-config":
@@ -151,8 +150,6 @@ class UpdateConfigScreen(Screen):
 
                 if new_config:
                     car_doc_unprotected = {
-                        "carID": app.car_id,
-                        "user": app.owner_id,
                         "configuration": new_config,
                     }
 
