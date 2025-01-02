@@ -55,7 +55,7 @@ The ChaCha20-Poly1305 algorithm takes as input a 256-bit key and a 96-bit nonce 
 
 ##### 2.2.1.2. Integrity
 
-The integrity in our system is mainly ensured by the Certificate Authority (CA), that represents the manufacturer and that will distribute to each server and client a private key as well as their own certificate. This certificate apart from being signed by the CA, it gives out the email address of the entity that it belongs to and in case the entity is an user that owns a car, it states which car they own, through the car id value. If the car wants to check that an incoming firmware update was in fact issued by the manufacturer, a certificate is sent alongside it and the car proceeds to see if the certificate is valid and through the signatures in them. When a client wants to request an alteration in a car configuration, apart from sending their certificate that is used by the car to validate their entity and ownership, it also needs to send the car key, a symmetric key that belongs to the car owner (user) and that is exchanged to the car through a mutual tls channel once the first request is made, as the car returns the error `503`.  If, for any reason, the car losses its key, when the owner performs a request, they are alerted to that and obliged to send it again (and not) Once the car has its key, and the owner properly sends their certificate, the system can guarantee that only the owner can perform updates to the configuration, thus ensuring the system's integrity.
+The integrity in our system is mainly ensured by the Certificate Authority (CA), that represents the manufacturer and that will distribute to each server and client a private key as well as their own certificate. This certificate apart from being signed by the CA, it gives out the email address of the entity that it belongs to and in case the entity is an user that owns a car, it states which car they own, through the car id value. If the car wants to check that an incoming firmware update was in fact issued by the manufacturer, a certificate is sent alongside it and the car proceeds to see if the certificate is valid and through the signatures in them. When a client wants to request an alteration in a car configuration, apart from sending their certificate that is used by the car to validate their entity and ownership, it also needs to send the car key, a symmetric key that belongs to the car owner (user) and that is exchanged to the car through a mutual tls channel once the first request is made, as the car returns the error `503`. If, for any reason, the car losses its key, when the owner performs a request, they are alerted to that and obliged to send it again (and not) Once the car has its key, and the owner properly sends their certificate, the system can guarantee that only the owner can perform updates to the configuration, thus ensuring the system's integrity.
 
 ##### 2.2.1.3. Authenticity
 
@@ -69,19 +69,18 @@ An unprotected document is a JSON object with the following structure:
 
 ```json
 {
-    "carId": 1,
-    "user": "user1",
-    "configuration": {
-        "ac": true,
-        "driver_door": "closed",
-        "tire_pressure": {
-            "1": "1psi",
-            "2": "3psi",
-            "3": "7psi",
-            "4": "1000psi"
-        }
+  "carId": 1,
+  "user": "user1",
+  "configuration": {
+    "ac": true,
+    "driver_door": "closed",
+    "tire_pressure": {
+      "1": "1psi",
+      "2": "3psi",
+      "3": "7psi",
+      "4": "1000psi"
     }
-
+  }
 }
 ```
 
@@ -89,12 +88,12 @@ Once the document is protected, it is transformed into a JSON object with the fo
 
 ```json
 {
-    "carId": 1,
-    "user": "user1",
-    "configuration": {
-        "nonce": "rh8vYjTDPfqVnpbU",
-        "ciphertext": "Zms6TnhM0FB+e7Ci+K3UNmz2N04sN4nx9Wto7vRRV9n5kIlMHPb8S9EVXYVnEEHbWvq5DVIjFFkjtPj+1eK3DBIlp8nVbK4ukL99Ikq1qV3zBHOS3QwEF3GZj1M2mFJvIGV99qYn+91VRS4IlNFCmx8rFiSy0HNxbpuyGsPD1mNkN9Vj9DSh1NgdggY5wvUJlaM="
-    }
+  "carId": 1,
+  "user": "user1",
+  "configuration": {
+    "nonce": "rh8vYjTDPfqVnpbU",
+    "ciphertext": "Zms6TnhM0FB+e7Ci+K3UNmz2N04sN4nx9Wto7vRRV9n5kIlMHPb8S9EVXYVnEEHbWvq5DVIjFFkjtPj+1eK3DBIlp8nVbK4ukL99Ikq1qV3zBHOS3QwEF3GZj1M2mFJvIGV99qYn+91VRS4IlNFCmx8rFiSy0HNxbpuyGsPD1mNkN9Vj9DSh1NgdggY5wvUJlaM="
+  }
 }
 ```
 
@@ -121,9 +120,41 @@ The `protect`, `unprotect` and `check` functions are the available to be used as
 
 ## 2.3 Infrastructure
 
-NixOS, firewalls, certs, cas, firewalls, Secure Server Communication (TLS), etc. @girao
+### 2.3.1 Infrastructure Overview
 
-The dbs only have one port opened and they are connected to dmz. (better than only accepting certain IPs).
+NixOS was selected for its simplicity and its capability to be seamlessly configured and replicated. Using a single configuration file, we can effortlessly replicate identical environments across multiple machines, with variations limited to network settings and the specific services running on each machine.
+
+QEMU was chosen because it is one of the most widely supported hypervisors, thanks to its direct kernel integration. For our requirements, it is perfectly adequate, as we are not utilizing any graphical interface.
+
+### 2.3.2 Secure Channel Communications - mTLS
+
+All server-server communications are secured with mutual TLS (mTLS) in-transit encryption. For example, on communications between app servers and database servers, both peers authenticate each other based on the certificates they present to one another. In addition, PostgreSQL database servers rely solely on client certificates for user authentication, providing a strong security authentication mechanism when compared to using passwords as is common practice.
+
+### 2.3.3 Firewalls
+
+All virtual machines have their own `iptables`-based firewall. All machines, by default, do not allow any inbound traffic and permit all outbound traffic.
+
+In addition to these default rules, servers will allow inbound traffic on specific ports, according to the services they operate:
+- Database servers (`manufacturer-db`, `car1-db`) will permit inbound traffic on TCP port `5432`;
+- Web servers (`car1-web`, `manufacturer-web`) will permit inbound traffic on TCP port `443`;
+- Finally, all machines have an SSH server running and will accept TCP traffic on port `22`. This SSH server is solely used for development purposes.
+
+It's relevant to notice only webservers are directly exposed to the world, and database servers are only accessible via servers on their respective DMZ.
+
+### 2.3.4 Public Key Infrastructure
+
+Our security model relies on the concept of trusting one Certificate Authority, whose entity is the Manufacturer. This Certificate Authority (CA) acts as the ultimate source of truth: any Certificate and all its information, if emitted by this CA and verified to be valid at a given point in time, is completely trusted by every other entity in our project to be true.
+The CA is ultimately responsible for binding public keys to entity identifiers. These identifiers, for servers, correspond to server's DNS names (e.g `car1-db.motorist.lan`), and for clients this is their e-mail address (e.g `messi@mechanic.motorist.lan`).
+In addition to this authentication property, the CA is also responsible for providing critical authorization parameters for client certificates:
+- It attests that a client has a specific role inside MotorIST: clients are either `user`s or `mechanic`s;
+- It attests which `user` is the owner of a particular, at a particular point in time (that is, while its certificate is still valid).
+
+All these properties are contained in the certificate's `Subject Alternative Name` (SAN)s properties, and can be inspected with the OpenSSL, or using the `step-cli` tool. For example:
+```
+step certificate inspect key_store/ronaldo@user.motorist.lan/entity.crt
+```
+
+
 
 ## 2.4 Threat Model
 
@@ -165,7 +196,7 @@ Once again the car will check the certificate that is sent by the client, when t
 
 ### 2.5.7. \[SRB3: data authenticity\] The user can verify that the mechanic performed all the tests to the car.
 
-Once the mechanic performs tests and send the results to the car, a signature is also sent and  the car keeps it in the database and the current mechanic certificate in the database. When the user checks the previously performed tests, the car validates the the signature with the tests data using the mechanic public key (contained in their certificate). With that, the user is sure that it was the mechanic that performed the tests.
+Once the mechanic performs tests and send the results to the car, a signature is also sent and the car keeps it in the database and the current mechanic certificate in the database. When the user checks the previously performed tests, the car validates the the signature with the tests data using the mechanic public key (contained in their certificate). With that, the user is sure that it was the mechanic that performed the tests.
 
 ## 3. Conclusion
 

@@ -2,17 +2,17 @@
 
 ## Team
 
-| Number | Name              | User                             | E-mail                              |
-| -------|-------------------|----------------------------------| ------------------------------------|
-| 99309  | Rafael Girão     | https://github.com/simaosanguinho   | <mailto:rafael.s.girao@tecnico.ulisboa.pt>   |
-| 102082  | Simão Sanguinho      | https://github.com/rafaelsgirao    | <mailto:simaosanguinho@tecnico.ulisboa.pt>     |
-| 103252  | José Pereira  | https://github.com/pereira0x | <mailto:jose.a.pereira@tecnico.ulisboa.pt> |
+| Number | Name            | User                              | E-mail                                     |
+| ------ | --------------- | --------------------------------- | ------------------------------------------ |
+| 99309  | Rafael Girão    | https://github.com/rafaelsgirao   | <mailto:rafael.s.girao@tecnico.ulisboa.pt> |
+| 102082 | Simão Sanguinho | https://github.com/simaosanguinho | <mailto:simaosanguinho@tecnico.ulisboa.pt> |
+| 103252 | José Pereira    | https://github.com/pereira0x      | <mailto:jose.a.pereira@tecnico.ulisboa.pt> |
 
 ![Rafael](img/ist199309.png) ![Simão](img/ist1102082.png) ![José](img/ist1103252.png)
 
 ## Contents
 
-This repository contains documentation and source code for the *Network and Computer Security (SIRS)* project.
+This repository contains documentation and source code for the _Network and Computer Security (SIRS)_ project.
 
 The [REPORT](REPORT.md) document provides a detailed overview of the key technical decisions and various components of the implemented project.
 It offers insights into the rationale behind these choices, the project's architecture, and the impact of these decisions on the overall functionality and performance of the system.
@@ -26,23 +26,41 @@ To see the project in action, it is necessary to setup a virtual environment, wi
 The following diagram shows the networks and machines:
 
 ### Requirements:
+
 - Nix
 - QEMU
 
 ### How to run?
+1. Open a development shell:
+```
+nix develop .
+```
 
-1. Configure the network interfaces. To do that, you need to run the following command:
+2. Configure the network interfaces. To do that, you need to run the following command:
+
 ```
 ./infra/networking.sh bootstrap
 ```
 
-2. Start the VMs. To do that, you need to run the commands bellow in individual terminals.
+3. Start the VMs. To do that, you need to run the commands bellow in individual terminals.
+
 ```
-./infra/start_vm.sh user
-./infra/start_vm.sh car1-db
-./infra/start_vm.sh car1-wb
 ./infra/start_vm.sh manufacturer-db
 ./infra/start_vm.sh manufacturer-web
+./infra/start_vm.sh car1-db
+./infra/start_vm.sh car1-web
+./infra/start_vm.sh user
+./infra/start_vm.sh mechanic
+```
+
+4. To run the user and mechanic applications, you need to run the following commands in individual terminals.
+
+```
+./use_user.sh <password = SIRS>
+> user 1 1
+
+./use_mechanic.sh <password = SIRS>
+> mechanic 1
 ```
 
 Now the VMs should be up and running and you should be able to interact with them.
@@ -59,22 +77,32 @@ The virtual machines are created using [MicroVM](https://github.com/astro/microv
 ### Machine configurations
 
 #### Machine 1 (Car Database)
+
 This machine runs the database service, which is responsible for storing the data of the cars. The database is a PostgreSQL database.
 
 #### Machine 2 (Car Web)
 
+This machine runs the car web server service and the backend, which is responsible for serving the endpoints to the other actors.
+
 #### Machine 3 (Manufacturer Database)
+
 This machine runs the database service, which is responsible for storing the data of the manufacturers. The database is a PostgreSQL database.
 
 #### Machine 4 (Manufacturer Web)
 
+This machine runs the manufacturer web server service, which is responsible for serving firmware to cars and mechanics.
+
 #### Machine 5 (User)
+
+This machine contains the `user` program, used to access the car as a user, and contains all its necessary dependencies. To use this, see `How to` section.
 
 #### Machine 6 (Mechanic)
 
+This machine contains the `mechanic` program, used to access the car as a mechanic, and contains all its necessary dependencies. To use this, see How to section.
+
 ## Demonstration
 
-Now that all the networks and machines are up and running,configured after following the installation instructions, we can now demonstrate the MotorIST project under usage scenario with the following actors:
+Now that all the networks and machines are up and running, configured after following the installation instructions, we can now demonstrate the MotorIST project under usage scenario with the following actors:
 
 ### Car Owner
 
@@ -133,7 +161,7 @@ In this screen they can choose over a variety of options, such as:
 ![Tests](img/mechanicApp_test-menu.png)
 ![Tests](img/mechanicApp_test-output.png)
 
-- After specifying the car's id to interact with, the mechanic can update the car's configuration (assuming it is in maintenance mode). This will allow the mechanic to change the car's configuration *only* for testing purposes. This will not change the user's configuration.
+- After specifying the car's id to interact with, the mechanic can update the car's configuration (assuming it is in maintenance mode). This will allow the mechanic to change the car's configuration _only_ for testing purposes. This will not change the user's configuration.
 
 ![Update Configuration](img/mechanicApp_update_config-menu.png)
 ![Update Configuration](img/mechanicApp_update_config-menu1.png)
@@ -196,6 +224,6 @@ We use [Git](https://git-scm.com/) for versioning. For the versions available, s
 
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE) for details.
 
-______________________________________________________________________
+---
 
 END OF README
