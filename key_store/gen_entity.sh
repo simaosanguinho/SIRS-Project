@@ -11,7 +11,7 @@ if [ -z "$ENTITY" ]; then
   echo "Usage examples:"
   echo "$0 car1-db"
   echo "$0 johndoe@mechanic.motorist.lan mechanic"
-  echo "$0 mike_the_car_owner@user.motorist.lan user car1"
+  echo "$0 mike_the_car_owner@user.motorist.lan user 1"
   exit 1
 fi
 

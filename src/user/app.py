@@ -205,13 +205,17 @@ class HomeScreen(Screen):
                     response = req.get(
                         f"{Common.CAR_URL}/get-config",
                     )
-                car_unprotected_doc = cryptolib.unprotect_lib(
-                    response.json(), f"{app.key_store}/car.key", ["configuration"]
-                )
-                self.display_output(
-                    "Current Configuration: "
-                    + json.dumps(car_unprotected_doc["configuration"])
-                )
+                if response.status_code == 403:
+                    self.display_output(response.text)
+
+                else:
+                    car_unprotected_doc = cryptolib.unprotect_lib(
+                        response.json(), f"{app.key_store}/car.key", ["configuration"]
+                    )
+                    self.display_output(
+                        "Current Configuration: "
+                        + json.dumps(car_unprotected_doc["configuration"])
+                    )
 
             elif button_id == "go-config":
                 # Navigate to the UpdateConfigScreen

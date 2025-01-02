@@ -14,7 +14,7 @@ for item in "${servers[@]}"; do
 done
 
 # Init clients
-./gen_entity.sh ronaldo@user.motorist.lan user car1
+./gen_entity.sh ronaldo@user.motorist.lan user 1
 ./gen_entity.sh messi@mechanic.motorist.lan mechanic
 ./gen_entity.sh johndoe@user.motorist.lan user
 

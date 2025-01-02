@@ -73,12 +73,11 @@ class Entity:
         role_attr = PKI.get_san_custom_oid(cert, "1.2.3.4.1")
         carowner_attr = PKI.get_san_custom_oid(cert, "1.2.3.4.2")
         self.car_owner = None
-        # TODO: verify certificate
         if role_attr:
             role_name = role_attr.removeprefix("motorist_role--")
             self.role = Role(role_name)
         if carowner_attr:
-            self.car_owner = role_attr.removeprefix("motorist_carowner--")
+            self.car_owner = carowner_attr.removeprefix("motorist_carowner--")
 
 
 class Car:
@@ -422,6 +421,9 @@ def root():
 
 @app.route("/set-car-key", methods=["POST"])
 def set_car_key():
+    entity = Entity(request.environ["peercert"])
+    if not entity.role == Role.User or not entity.car_owner == car.id:
+        return "User not authorized to change maintenance mode", 403
     data = request.get_json()
     encrypted_car_key = data["key"]
     car.car_key = PKI.decrypt_data(encrypted_car_key, f"{car.key_store}/key.priv")
@@ -433,7 +435,7 @@ def set_car_key():
 @app.route("/run-tests", methods=["POST"])
 def run_tests():
     if not car.maintenance_mode:
-        return "Maintenance Mode is off", 504
+        return "Maintenance Mode is off", 401
     data = request.get_json()
     mechanic_cert = request.environ["peercert"]
     print("Data Received", data)
@@ -454,8 +456,8 @@ def run_tests():
 @app.route("/maintenance-mode/<mode>")
 def maintenance_mode(mode):
     entity = Entity(request.environ["peercert"])
-    if (not entity.role == Role.User) and not (entity.car_owner == car.id):
-        return "User not authorized to change maintenance mode"
+    if not (entity.role == Role.User) and not (entity.car_owner == car.id):
+        return "User not authorized to change maintenance mode", 403
 
     if not car.car_key:
         return "Not allowed without a key", 503
@@ -478,7 +480,9 @@ def maintenance_mode(mode):
 def update_config():
     if not car.car_key:
         return "Not allowed without a key", 503
-
+    entity = Entity(request.environ["peercert"])
+    if not entity.role == Role.User or not entity.car_owner == car.id:
+        return "User not authorized to change maintenance mode", 403
     data = request.get_json()
     print("Data Received", data)
     print("Type", type(data))
@@ -506,10 +510,10 @@ def update_mechanic_config():
     # Authenticate the user
     entity = Entity(request.environ["peercert"])
     if not entity.role == Role.Mechanic:
-        return "User not authorized to change the mechanic config"
+        return "User not authorized to change the mechanic config", 403
 
     if not car.maintenance_mode:
-        return "Maintenance Mode is off", 504
+        return "Maintenance Mode is off", 401
     data = request.get_json()
     print("Data Received", data)
     print("Type", type(data))
@@ -528,15 +532,18 @@ def get_mechanic_config():
     # Authenticate the user
     entity = Entity(request.environ["peercert"])
     if not entity.role == Role.Mechanic:
-        return "User not authorized to change the mechanic config"
+        return "User not authorized to change the mechanic config", 403
 
     if not car.maintenance_mode:
-        return "Maintenance Mode is off", 504
+        return "Maintenance Mode is off", 401
     return json.dumps(car.mechanic_config)
 
 
 @app.route("/get-config")
 def get_config():
+    entity = Entity(request.environ["peercert"])
+    if not entity.role == Role.User or not entity.car_owner == car.id:
+        return "User not authorized to get config", 403
     if not car.car_key:
         return "Not allowed without a key", 503
     try:
@@ -548,6 +555,9 @@ def get_config():
 
 @app.route("/check-battery")
 def check_battery():
+    entity = Entity(request.environ["peercert"])
+    if not entity.role == Role.User or not entity.car_owner == car.id:
+        return "User not authorized to check battery", 403
     if not car.car_key:
         return "Not allowed without a key", 503
     return f"Battery Level: {car.battery_level} %"
@@ -555,6 +565,9 @@ def check_battery():
 
 @app.route("/charge-battery")
 def charge_battery():
+    entity = Entity(request.environ["peercert"])
+    if not entity.role == Role.User or not entity.car_owner == car.id:
+        return "User not authorized to charge battery", 403
     if not car.car_key:
         return "Not allowed without a key", 503
     car.battery_level = 100
@@ -564,6 +577,9 @@ def charge_battery():
 
 @app.route("/check-firmware")
 def check_firmware():
+    entity = Entity(request.environ["peercert"])
+    if not entity.role == Role.User or not entity.car_owner == car.id:
+        return "User not authorized to check firmware", 403
     if not car.car_key:
         return "Not allowed without a key", 503
     return car.get_current_firmware()
@@ -571,6 +587,9 @@ def check_firmware():
 
 @app.route("/verify-firmware-history")
 def verify_firmware_history():
+    entity = Entity(request.environ["peercert"])
+    if not entity.role == Role.User or not entity.car_owner == car.id:
+        return "User not authorized to check firmware history", 403
     if not car.car_key:
         return "Not allowed without a key", 503
     return car.get_all_and_verify_firmware()
@@ -578,6 +597,9 @@ def verify_firmware_history():
 
 @app.route("/check-tests")
 def check_tests():
+    entity = Entity(request.environ["peercert"])
+    if not entity.role == Role.User or not entity.car_owner == car.id:
+        return "User not authorized to check tests", 403
     if not car.car_key:
         return "Not allowed without a key", 503
     return car.get_latest_test()
@@ -585,6 +607,9 @@ def check_tests():
 
 @app.route("/verify-tests-history")
 def verify_tests_history():
+    entity = Entity(request.environ["peercert"])
+    if not entity.role == Role.User or not entity.car_owner == car.id:
+        return "User not authorized to check tests history", 403
     if not car.car_key:
         return "Not allowed without a key", 503
     return car.get_all_and_verify_tests()
@@ -606,12 +631,13 @@ def whoami():
 # TODO: Add endpoint to update firmware
 @app.route("/update-firmware", methods=["POST"])
 def update_firmware():
-    if not car.car_key:
-        return "Not allowed without a key", 503
-    if not car.maintenance_mode:
-        return "Maintenance Mode is off", 504
+    entity = Entity(request.environ["peercert"])
+    if not entity.role == Role.Mechanic:
+        return "User not authorized to update firmware", 403
     try:
-        # check maintenance mode
+        if not car.maintenance_mode:
+            return "Maintenance Mode is off", 401
+
         data = request.get_json()
         firmware = data["firmware"]
         signature = data["signature"]
