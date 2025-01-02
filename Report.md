@@ -177,7 +177,7 @@ With the implementation of the MotorIST project, we were able to achieve the pro
 
 There are still some features and improvements that could be made to the project. For example, we could implement a web interface for the car owner to manage the car configurations, which would make it easier for the car owner to interact with the car by having a better UI/UX.
 
-Another improvement that could be made is to implement support for multiple entities, such as multiple car owners, mechanics and car manufacturers. This would allow the project to be more flexible and to better mimic a real-world scenario.
+Another improvement that could be made is to implement support for multiple entities, such as multiple car owners, mechanics and car manufacturers. This would allow the project to be more flexible and to better mimic and suit a real-world scenario.
 
 \[falar sobre o que pode ser melhorado\]
 
