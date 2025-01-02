@@ -51,23 +51,17 @@ To ensure that sensitive information is kept private and only accessible to auth
 
 When we were thinking of which algorithm to use, we were first thinking of using AES, but we decided to use ChaCha20Poly1305 because it is optimized for software performance, making it faster than AES without hardware support. It also a [great choice](https://ieeexplore.ieee.org/document/7927078) on IoT devices, and embedded systems, which is the case of the car.
 
-The ChaCha20-Poly1305 algorithm takes as input a 256-bit key and a 96-bit nonce to encrypt a plaintext. It is important to note that, to ensure true randomness, the nonce must be generated using a cryptographically secure random number generator. For this, we used the `token_bytes` method from the `secrets` module from Python, as it is the [documentation's recommendation](https://docs.python.org/3/library/secrets.html) for generating cryptographically secure random numbers. This random nonce will be essential as it prevents that different encryptions with the same data and the same key, results in different ciphertext values.
+The ChaCha20-Poly1305 algorithm takes as input a 256-bit key and a 96-bit nonce to encrypt a plaintext. It is important to note that, to ensure true randomness, the nonce must be generated using a cryptographically secure random number generator. For this, we used the `token_bytes` method from the `secrets` module from Python, as it is the [documentation's recommendation](https://docs.python.org/3/library/secrets.html) for generating cryptographically secure random numbers. This random nonce will be essential as it allows that different encryptions with the same data and the same key, results in different ciphertext values.
 
 ##### 2.2.1.2. Integrity
 
-<!-- Acho que isto tem a ver com a parte dos CAs? "\[SR2: Integrity 1\] The car can only accept configurations sent by the car owner; \[SR3: Integrity 2\] The car firmware updates can only be sent by the car manufacturer." @girao esta parte ns mm qual a justifacao mais correta a dar, mas aposto em CAs.
-
-A CA representa o manufactiurer -->
-
-The integrity in our system is mainly ensured by the Certificate Authority (CA), that represents the manufacturer and that will distribute to each server and client a private key as well as their own certificate. This certificate apart from being signed by the CA, it gives out the email address of the entity that it belongs to and in case the entity is an user that owns a car, it states which car they own, through the car id value. If the car wants to check that an incoming firmware update was in fact issued by the manufacturer, a certificate is sent alongside it and the car proceeds to see if the certifcate is valid and through the signatures in them. When a client wants to request an alteration in a car configuration, apart from sending their certificate that is used by the car to validate their entity and ownership, it also needs to send the car key, a symmetric key that belongs to the car owner (user) and that is exchanged to the car through a mutual tls channel once the first request is made, as the car returns the error `503`.  If, for any reason, the car losses its key, when the owner performs a request, they are alerted to that and obliged to send it again (and not) Once the car has its key, and the owner properly sends their certificate, the system can guarantee that only the owner can perform updates to the configuration, thus ensuring the system's integrity.
+The integrity in our system is mainly ensured by the Certificate Authority (CA), that represents the manufacturer and that will distribute to each server and client a private key as well as their own certificate. This certificate apart from being signed by the CA, it gives out the email address of the entity that it belongs to and in case the entity is an user that owns a car, it states which car they own, through the car id value. If the car wants to check that an incoming firmware update was in fact issued by the manufacturer, a certificate is sent alongside it and the car proceeds to see if the certificate is valid and through the signatures in them. When a client wants to request an alteration in a car configuration, apart from sending their certificate that is used by the car to validate their entity and ownership, it also needs to send the car key, a symmetric key that belongs to the car owner (user) and that is exchanged to the car through a mutual tls channel once the first request is made, as the car returns the error `503`.  If, for any reason, the car losses its key, when the owner performs a request, they are alerted to that and obliged to send it again (and not) Once the car has its key, and the owner properly sends their certificate, the system can guarantee that only the owner can perform updates to the configuration, thus ensuring the system's integrity.
 
 ##### 2.2.1.3. Authenticity
 
-To ensure authenticity and non-repudiation, which means that the person who appears to have performed an action is indeed the one who did it, we use asymmetric cryptography. For example, in the case of the car manufacturer, the firmware is signed using the manufacturer's private key. This signature is then verified by the car using the manufacturer's public key, which is distributed beforehand via the manufacturer's certificate, which prevents other entities from imperssonating the manufacturer and sending malicious firmware updates.
+To ensure authenticity and non-repudiation, which means that the person who appears to have performed an action is indeed the one who did it, we use asymmetric cryptography. For example, in the case of the car manufacturer, the firmware is signed using the manufacturer's private key. This signature is then verified by the car using the manufacturer's public key, which is distributed beforehand via the manufacturer's certificate, which prevents other entities from impersonating the manufacturer and sending malicious firmware updates.
 
-<!-- @FIXME girao agora nao tenho a certeza se a justifacação aqui deva ser asymetric keys ou se falo em CAs. -->
-
-Another way our system guarantees authenticity is when a config is sent in a protected manner by the cryptolib. The  data is protected using encryption algorithms whcih means that if a single byte is altered, the decryption will certainly fail. Furthermore, a random nonce field is added for each of the encrypted fields in the car document, ensuring data freshness, which will prevent replay attacks, that can happen if an attacker intercepts and tries retransmits a valid data exchange to trick the system into accepting it as legitimate.
+Another way which means that if a single byte is altered, the decryption will certainly fail. Furthermore, a random nonce field is added for each of the encrypted fields in the car document, ensuring data freshness, which will prevent replay attacks, that can happen if an attacker intercepts and tries retransmits a valid data exchange to trick the system into accepting it as legitimate.
 
 #### 2.2.2. Document Structure
 
@@ -131,6 +125,8 @@ The `protect`, `unprotect` and `check` functions are the available to be used as
 
 NixOS, firewalls, certs, cas, firewalls, Secure Server Communication (TLS), etc. @girao
 
+The dbs only have one port opened and they are connected to dmz. (better than only accepting certain IPs).
+
 ## 2.4 Threat Model
 
 One of the assumptions we made in our threat model is that the attacker has the capability to intercept network traffic and send malicious requests, but we assume that the attacker cannot compromise the actual machines.
@@ -151,13 +147,11 @@ To ensure that the car configurations can only be seen by the car owner, we used
 
 ### 2.5.2. \[SR2: Integrity 1\] The car can only accept configurations sent by the car owner.
 
-<!-- ainda nao fizemos isto mas tenho ideias q é CA stuff -->
-
-The user in order to request for a configuration update, they need to send a certificate that is issued and properly signed by the trusted CA. With this certificate the car will be able to see if the requester is an user and that they are indeed the owner of the car, through the infoirmation that is contained inside the certificate.
+The user in order to request for a configuration update, they need to send a certificate that is issued and properly signed by the trusted CA. With this certificate the car will be able to see if the requester is an user and that they are indeed the owner of the car, through the information that is contained inside the certificate.s
 
 ### 2.5.3. \[SR3: Integrity 2\] The car firmware updates can only be sent by the car manufacturer.
 
-Every time the mechanic wants to update the firmware of the car, it request the manufacturer to emit a new firmware. The manufacturer creates a new firmware and send it alongside a signature that is created based on the firmware data. The mechanic recieves the response and forwards it directly to the car. Once it receives the new firmware the car will compare the the signature with the firmware data, using the manufacturer public key (contained in their certificate), ensuring that the update was certainly issued by ther manufacturer and only they can perform such action.
+Every time the mechanic wants to update the firmware of the car, it request the manufacturer to emit a new firmware. The manufacturer creates a new firmware and send it alongside a signature that is created based on the firmware data. The mechanic receives the response and forwards it directly to the car. Once it receives the new firmware the car will validate the the signature with the firmware data, using the manufacturer public key (contained in their certificate), ensuring that the update was certainly issued by their manufacturer and only they can perform such action.
 
 ### 2.5.4. \[SR4: Authentication\] The car manufacture cannot deny having sent firmware updates.
 
@@ -165,15 +159,15 @@ In order to ensure that the car manufacturer cannot deny having sent firmware up
 
 ### 2.5.5. \[SRB1: data privacy\] The mechanic cannot see the user configurations, even when he has the car key.
 
-ainda nao fizemos isto e sinceramente ainda nao sei como isto vai ser feito
+In the same way we ensure that the car only accepts configuration updates that are sent by the car owner (as discussed in section 2.5.2), the car will check the certificate that is sent by the client, when the car configurations are fetched and it only gives them out if the aforesaid certificate states that the client has a role of `User`and it is the owner of the car. If the client is neither of those things (for example if they are a mechanic), the car will not deliver the car configuration, returning with error `403`.
 
 ### 2.5.6. \[SRB2: authorization\] The mechanic (when authenticated) can change any parameter of the car, for testing purposes.
 
-ainda nao fizemos isto mas tem a ver com o modo de manutenção que que e ativado pelo car owner quando ele vai ao mecânico
+Once again the car will check the certificate that is sent by the client, when the mechanic tests are sent (through the endpoint `\run-tests`) and it only accepts them if the aforesaid certificate states that the client has a role of `Mechanic`. If the client has any other role (for example if they are an user), the car will not accept the incoming tests and store them in the database, returning with error `403`.
 
 ### 2.5.7. \[SRB3: data authenticity\] The user can verify that the mechanic performed all the tests to the car.
 
-Ainda nao fizemos mas probably vamos fazer como fazemos para o manufacturer ser verificavel de ter enviado o firmware
+Once the mechanic performs tests and send the results to the car, a signature is also sent and  the car keeps it in the database and the current mechanic certificate in the database. When the user checks the previously performed tests, the car validates the the signature with the tests data using the mechanic public key (contained in their certificate). With that, the user is sure that it was the mechanic that performed the tests.
 
 ## 3. Conclusion
 
