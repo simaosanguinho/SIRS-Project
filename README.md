@@ -165,6 +165,14 @@ Has we can see in the image above, the manufacturer can issue a new firmware by 
 
 ### Car
 
+The car has various endpoints that allow it to interact with the mechanic and the owner. The car can also interact with the manufacturer, but only to get it's first base firmware once it is manufactured. 
+
+The endpoints are the ones that were previously mentioned in the Mechanic and Manufacturer sections.
+
+The only endpoint that is not mentioned is the `/set-car-key` endpoint, that allows the car owner to share the car's key (a shared secret that should only be known by the car and the owner) with the car. This is done by calling the endpoint with the car's key, encrypted with the car's public key, as a parameter. This way, the car can decrypt the key and use it to decrypt the configuration updates that the owner sends and retrieves from the car.
+
+It is important to note that the car has a authorization mechanism that only actors to interact with certain endpoints if they have the correct permissions (we use the concept of roles here). 
+
 
 
 *(give a tour of the best features of the application; add screenshots when relevant)*
