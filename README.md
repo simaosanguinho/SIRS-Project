@@ -25,6 +25,8 @@ To see the project in action, it is necessary to setup a virtual environment, wi
 
 The following diagram shows the networks and machines:
 
+![Networks and Machines](img/infra.png)
+
 ### Requirements:
 
 - Nix

@@ -126,6 +126,10 @@ NixOS was selected for its simplicity and its capability to be seamlessly config
 
 QEMU was chosen because it is one of the most widely supported hypervisors, thanks to its direct kernel integration. For our requirements, it is perfectly adequate, as we are not utilizing any graphical interface.
 
+A simple representation of the infrastructure is shown below:
+
+![Infrastructure](./img/infra.png)
+
 ### 2.3.2 Secure Channel Communications - mTLS
 
 All server-server communications are secured with mutual TLS (mTLS) in-transit encryption. For example, on communications between app servers and database servers, both peers authenticate each other based on the certificates they present to one another. In addition, PostgreSQL database servers rely solely on client certificates for user authentication, providing a strong security authentication mechanism when compared to using passwords as is common practice.
