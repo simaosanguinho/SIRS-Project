@@ -8,8 +8,6 @@
 | 102082 | Simão Sanguinho | https://github.com/simaosanguinho | <mailto:simaosanguinho@tecnico.ulisboa.pt> |
 | 103252 | José Pereira    | https://github.com/pereira0x      | <mailto:jose.a.pereira@tecnico.ulisboa.pt> |
 
-![Rafael](img/ist199309.png) ![Simão](img/ist1102082.png) ![José](img/ist1103252.png)
-
 ## Contents
 
 This repository contains documentation and source code for the _Network and Computer Security (SIRS)_ project.
@@ -33,7 +31,9 @@ The following diagram shows the networks and machines:
 - QEMU
 
 ### How to run?
+
 1. Open a development shell:
+
 ```
 nix develop .
 ```
@@ -226,6 +226,6 @@ We use [Git](https://git-scm.com/) for versioning. For the versions available, s
 
 This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE) for details.
 
----
+______________________________________________________________________
 
 END OF README
